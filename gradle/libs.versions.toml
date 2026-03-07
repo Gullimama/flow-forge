@@ -1,0 +1,49 @@
+[versions]
+java = "25"
+spring-boot = "4.0.3"
+spring-ai = "1.0.3"
+spring-data-neo4j = "7.4.0"
+minio = "8.5.13"
+opensearch = "2.18.0"
+qdrant = "1.12.1"
+javaparser = "3.26.3"
+djl = "0.30.0"
+smile = "3.1.1"
+spmf = "2.60"
+flyway = "11.1.0"
+testcontainers = "1.20.6"
+freemarker = "2.3.33"
+resilience4j = "2.2.0"
+micrometer = "1.15.0"
+jackson = "2.18.3"
+fabric8 = "7.0.1"
+
+[libraries]
+spring-boot-starter-web = { module = "org.springframework.boot:spring-boot-starter-web" }
+spring-boot-starter-data-jpa = { module = "org.springframework.boot:spring-boot-starter-data-jpa" }
+spring-boot-starter-actuator = { module = "org.springframework.boot:spring-boot-starter-actuator" }
+spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test" }
+spring-ai-openai-spring-boot-starter = { module = "org.springframework.ai:spring-ai-openai-spring-boot-starter", version.ref = "spring-ai" }
+spring-ai-qdrant-store = { module = "org.springframework.ai:spring-ai-qdrant-store-spring-boot-starter", version.ref = "spring-ai" }
+spring-data-neo4j = { module = "org.springframework.boot:spring-boot-starter-data-neo4j" }
+minio = { module = "io.minio:minio", version.ref = "minio" }
+opensearch-client = { module = "org.opensearch.client:opensearch-java", version.ref = "opensearch" }
+javaparser = { module = "com.github.javaparser:javaparser-core", version.ref = "javaparser" }
+djl-api = { module = "ai.djl:api", version.ref = "djl" }
+djl-pytorch = { module = "ai.djl.pytorch:pytorch-engine", version.ref = "djl" }
+djl-onnxruntime = { module = "ai.djl.onnxruntime:onnxruntime-engine", version.ref = "djl" }
+smile-core = { module = "com.github.haifengl:smile-core", version.ref = "smile" }
+freemarker = { module = "org.freemarker:freemarker", version.ref = "freemarker" }
+resilience4j-spring-boot3 = { module = "io.github.resilience4j:resilience4j-spring-boot3", version.ref = "resilience4j" }
+fabric8-kubernetes-client = { module = "io.fabric8:kubernetes-client", version.ref = "fabric8" }
+flyway-core = { module = "org.flywaydb:flyway-core", version.ref = "flyway" }
+flyway-postgresql = { module = "org.flywaydb:flyway-database-postgresql", version.ref = "flyway" }
+postgresql = { module = "org.postgresql:postgresql" }
+testcontainers-junit5 = { module = "org.testcontainers:junit-jupiter", version.ref = "testcontainers" }
+testcontainers-postgresql = { module = "org.testcontainers:postgresql", version.ref = "testcontainers" }
+testcontainers-neo4j = { module = "org.testcontainers:neo4j", version.ref = "testcontainers" }
+testcontainers-minio = { module = "org.testcontainers:minio", version.ref = "testcontainers" }
+
+[plugins]
+spring-boot = { id = "org.springframework.boot", version.ref = "spring-boot" }
+spring-dependency-management = { id = "io.spring.dependency-management", version = "1.1.7" }

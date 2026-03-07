@@ -1,0 +1,13 @@
+{
+  "snapshotId": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+  "repoUrl": "https://github.com/tesco/booking-service",
+  "branch": "main",
+  "commitSha": "def789abc012345",
+  "snapshotType": "REFRESH",
+  "createdAt": "2026-03-07T12:00:00Z",
+  "changedFiles": [
+    "src/main/java/com/tesco/booking/BookingService.java",
+    "src/main/java/com/tesco/booking/PaymentClient.java",
+    "src/main/resources/application.yml"
+  ]
+}

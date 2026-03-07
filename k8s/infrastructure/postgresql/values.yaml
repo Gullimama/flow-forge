@@ -1,0 +1,44 @@
+image:
+  registry: docker.io
+  repository: postgres
+  tag: "16-alpine"
+
+auth:
+  database: flowforge
+  username: flowforge
+  existingSecret: flowforge-postgresql-credentials
+  secretKeys:
+    userPasswordKey: password
+
+primary:
+  resources:
+    requests:
+      cpu: "1"
+      memory: 2Gi
+    limits:
+      cpu: "2"
+      memory: 4Gi
+  persistence:
+    enabled: true
+    size: 50Gi
+    storageClass: managed-csi
+  nodeSelector:
+    agentpool: cpupool
+  readinessProbe:
+    enabled: true
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 5
+  livenessProbe:
+    enabled: true
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+  initdb:
+    scriptsConfigMap: flowforge-initdb
+
+metrics:
+  enabled: true
+  serviceMonitor:
+    enabled: true
+    namespace: flowforge-obs

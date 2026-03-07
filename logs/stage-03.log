@@ -1,0 +1,120 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║               STAGE 03 — MINIO RAW EVIDENCE STORE                          ║
+║                        Test & Verification Report                          ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+Date:      2026-03-07
+
+================================================================================
+CHECK 1: Required Files (10/10)
+================================================================================
+
+  [PASS] libs/common/src/main/java/com/flowforge/common/client/MinioStorageClient.java
+  [PASS] libs/common/src/main/java/com/flowforge/common/client/MinioObjectInfo.java
+  [PASS] libs/common/src/main/java/com/flowforge/common/config/MinioClientConfiguration.java
+  [PASS] libs/common/src/main/java/com/flowforge/common/health/MinioHealthIndicator.java
+  [PASS] k8s/argocd/apps/minio.yaml
+  [PASS] k8s/infrastructure/minio/values.yaml
+  [PASS] libs/common/src/test/java/com/flowforge/common/client/MinioStorageClientUnitTest.java
+  [PASS] libs/common/src/test/java/com/flowforge/common/client/MinioStorageClientIntegrationTest.java
+  [PASS] libs/common/src/test/java/com/flowforge/common/health/MinioHealthIndicatorTest.java
+  [PASS] libs/common/src/test/resources/fixtures/minio-key-paths.txt
+
+================================================================================
+CHECK 2: Gradle Build
+================================================================================
+
+  ./gradlew clean build — BUILD SUCCESSFUL
+
+  [PASS] Gradle build succeeded
+
+================================================================================
+CHECK 3: Unit Tests
+================================================================================
+
+  MinioStorageClientUnitTest     4 tests, 0 failures
+    - putJsonSerializesObjectBeforeUpload
+    - getJsonDeserializesToExpectedType
+    - objectExistsReturnsFalseOnNoSuchKeyException
+    - healthCheckReturnsFalseOnException
+
+  MinioHealthIndicatorTest       2 tests, 0 failures
+    - healthUpWhenMinioReachable
+    - healthDownWhenMinioUnreachable
+
+  ─────────────────────────────────────────────────
+  Stage-3 unit tests: 6 tests, 0 failures
+
+  [PASS] Unit tests passed
+
+================================================================================
+CHECK 4: Integration Tests (Testcontainers MinIO)
+================================================================================
+
+  MinioStorageClientIntegrationTest  8 tests, 0 failures
+    - ensureBucketsCreatesAllEightBuckets
+    - putAndGetObjectRoundTrip
+    - putAndGetJsonRoundTrip
+    - listObjectsReturnsCorrectCount
+    - streamDownloadReturnsFullContent
+    - deleteObjectRemovesIt
+    - copyObjectBetweenBuckets
+    - healthCheckReturnsTrueWithRunningMinio
+
+  [PASS] Integration tests passed
+
+================================================================================
+CHECK 5: Checkstyle / Lint
+================================================================================
+
+  make lint — BUILD SUCCESSFUL (checkstyleMain)
+
+  [PASS] Lint passed
+
+================================================================================
+CHECK 6: Verification Table
+================================================================================
+
+  Check                      | Result
+  ---------------------------|--------
+  Required files exist       | PASS (10/10)
+  Gradle builds              | PASS
+  Unit tests                 | PASS (6 tests)
+  Integration tests          | PASS (8 tests)
+  make build                 | PASS
+  make lint                  | PASS
+  Buckets created (8)        | PASS (ensureBucketsCreatesAllEightBuckets)
+  Put + get object           | PASS (putAndGetObjectRoundTrip)
+  Put + get JSON             | PASS (putAndGetJsonRoundTrip)
+  List objects               | PASS (listObjectsReturnsCorrectCount)
+  Stream download            | PASS (streamDownloadReturnsFullContent)
+  Delete object              | PASS (deleteObjectRemovesIt)
+  Copy object                | PASS (copyObjectBetweenBuckets)
+  Health indicator           | PASS (unit + integration)
+  Key path compliance        | PASS (minio-key-paths.txt reference)
+  MinIO pod / ArgoCD         | N/A (AKS only)
+
+================================================================================
+SUMMARY
+================================================================================
+
+  ██████████████████████████████████████████████████
+  █                                                █
+  █   STAGE 03 VERIFICATION: ALL CHECKS PASSED    █
+  █                                                █
+  ██████████████████████████████████████████████████
+
+================================================================================
+VERIFICATION RUN — 2026-03-07
+================================================================================
+
+  ./gradlew clean build                    BUILD SUCCESSFUL
+  ./gradlew :libs:common:integrationTest   BUILD SUCCESSFUL (15 tests, 0 failures)
+  make build                               BUILD SUCCESSFUL
+  make lint                                BUILD SUCCESSFUL
+
+  Stage-3 specific:
+    Unit:    MinioStorageClientUnitTest 4, MinioHealthIndicatorTest 2 — 6 tests, 0 failures
+    Integ:   MinioStorageClientIntegrationTest 8 — 8 tests, 0 failures
+
+  No failures. Log updated after full verification.

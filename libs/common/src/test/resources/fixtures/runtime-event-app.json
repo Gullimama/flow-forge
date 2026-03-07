@@ -1,0 +1,24 @@
+{
+  "eventId": "evt-app-001",
+  "timestamp": "2026-03-07T10:15:30.123Z",
+  "sourceType": "APP",
+  "service": "booking-service",
+  "namespace": "prod",
+  "pod": "booking-service-5f8b9c7d6-abc12",
+  "traceId": "4bf92f3577b34da6a3ce929d0e0e4736",
+  "spanId": "00f067aa0ba902b7",
+  "correlationId": "corr-12345",
+  "requestId": "req-67890",
+  "httpMethod": "POST",
+  "path": "/api/v1/bookings",
+  "statusCode": 201,
+  "latencyMs": 45.2,
+  "targetService": "payment-service",
+  "exceptionType": null,
+  "message": "Booking created successfully",
+  "tags": {
+    "env": "prod",
+    "region": "eu-west-1",
+    "version": "2.1.0"
+  }
+}

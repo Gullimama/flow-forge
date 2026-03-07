@@ -1,0 +1,45 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/flowforge_test
+    username: flowforge
+    password: flowforge
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
+
+flowforge:
+  minio:
+    endpoint: http://localhost:9000
+    access-key: minioadmin
+    secret-key: minioadmin
+    secure: false
+  opensearch:
+    hosts:
+      - http://localhost:9200
+    username: admin
+    password: admin
+    index-prefix: flowforge-test
+  qdrant:
+    host: localhost
+    port: 6334
+    api-key: ""
+    collection-prefix: flowforge-test
+  neo4j:
+    uri: bolt://localhost:7687
+    user: neo4j
+    password: password
+    database: flowforge
+  postgres:
+    url: jdbc:postgresql://localhost:5432/flowforge_test
+    username: flowforge
+    password: flowforge
+  vllm:
+    base-url: http://localhost:8000
+    api-key: ""
+    model: Qwen/Qwen3-14B
+  tei:
+    code-url: http://localhost:8081
+    log-url: http://localhost:8082
+    reranker-url: http://localhost:8083

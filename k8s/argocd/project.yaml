@@ -1,0 +1,33 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: flowforge
+  namespace: argocd
+spec:
+  description: FlowForge research platform
+  sourceRepos:
+    - 'https://github.com/tesco/flow-forge.git'
+    - 'https://charts.bitnami.com/bitnami'
+    - 'https://opensearch-project.github.io/helm-charts'
+    - 'https://helm.neo4j.com/neo4j'
+    - 'https://qdrant.github.io/qdrant-helm'
+    - 'https://argoproj.github.io/argo-helm'
+    - 'https://dapr.github.io/helm-charts'
+    - 'https://prometheus-community.github.io/helm-charts'
+    - 'https://grafana.github.io/helm-charts'
+  destinations:
+    - namespace: 'flowforge*'
+      server: https://kubernetes.default.svc
+    - namespace: 'argo'
+      server: https://kubernetes.default.svc
+    - namespace: 'dapr-system'
+      server: https://kubernetes.default.svc
+    - namespace: 'flowforge-obs'
+      server: https://kubernetes.default.svc
+  clusterResourceWhitelist:
+    - group: ''
+      kind: Namespace
+    - group: rbac.authorization.k8s.io
+      kind: ClusterRole
+    - group: rbac.authorization.k8s.io
+      kind: ClusterRoleBinding

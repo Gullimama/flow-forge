@@ -1,0 +1,17 @@
+{
+  "artifactType": "class-declaration",
+  "serviceName": "order-service",
+  "className": "OrderService",
+  "packageName": "com.example.service",
+  "methods": [
+    {
+      "name": "findActiveOrders",
+      "returnType": "List<Order>",
+      "parameters": [],
+      "lineStart": 13,
+      "lineEnd": 15
+    }
+  ],
+  "dependencies": ["OrderRepository"],
+  "parsedAt": "2026-03-07T12:00:00Z"
+}

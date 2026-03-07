@@ -1,0 +1,132 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║               STAGE 01 — PROJECT SCAFFOLDING & REPOSITORY STRUCTURE        ║
+║                        Test & Verification Report                          ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+Date:      2026-03-07
+
+================================================================================
+CHECK 1: Directory Structure (31/31)
+================================================================================
+
+  [PASS] libs/common/src/main/java/com/flowforge/common/config
+  [PASS] libs/common/src/main/java/com/flowforge/common/model
+  [PASS] libs/common/src/main/java/com/flowforge/common/client
+  [PASS] libs/common/src/main/java/com/flowforge/common/util
+  [PASS] libs/common/src/test/java/com/flowforge/common/config
+  [PASS] libs/common/src/test/java/com/flowforge/common/model
+  [PASS] libs/common/src/test/resources/fixtures
+  [PASS] libs/test-fixtures
+  [PASS] services/api
+  [PASS] services/orchestrator
+  [PASS] k8s/argocd/apps
+  [PASS] k8s/infrastructure/postgresql
+  [PASS] k8s/infrastructure/minio
+  [PASS] k8s/infrastructure/opensearch
+  [PASS] k8s/infrastructure/neo4j
+  [PASS] k8s/infrastructure/qdrant
+  [PASS] k8s/infrastructure/redis
+  [PASS] k8s/ml-serving/tei-code
+  [PASS] k8s/ml-serving/tei-log
+  [PASS] k8s/ml-serving/tei-reranker
+  [PASS] k8s/ml-serving/vllm
+  [PASS] k8s/app/flowforge-api
+  [PASS] k8s/observability/kube-prometheus-stack
+  [PASS] k8s/observability/tempo
+  [PASS] k8s/observability/mlflow
+  [PASS] k8s/argo
+  [PASS] k8s/dapr
+  [PASS] k8s/grafana
+  [PASS] k8s/monitoring
+  [PASS] docker
+  [PASS] gradle/wrapper
+
+================================================================================
+CHECK 2: Required Files (34/34)
+================================================================================
+
+  [PASS] settings.gradle.kts
+  [PASS] build.gradle.kts
+  [PASS] gradle/libs.versions.toml
+  [PASS] libs/common/build.gradle.kts
+  [PASS] libs/common/src/main/java/com/flowforge/common/config/FlowForgeProperties.java
+  [PASS] libs/common/src/main/java/com/flowforge/common/model/SnapshotMetadata.java
+  [PASS] libs/common/src/main/java/com/flowforge/common/model/BlobIngestionRecord.java
+  [PASS] libs/common/src/main/java/com/flowforge/common/model/JobStatus.java
+  [PASS] libs/common/src/main/java/com/flowforge/common/model/RuntimeEvent.java
+  [PASS] docker/Dockerfile.base
+  [PASS] docker/Dockerfile.gpu-base
+  [PASS] docker/docker-compose.yml
+  [PASS] k8s/argocd/project.yaml
+  [PASS] k8s/argocd/app-of-apps.yaml
+  [PASS] k8s/argocd/apps/namespaces.yaml
+  [PASS] Makefile
+  [PASS] .env.example
+  [PASS] .gitignore
+  [PASS] libs/common/src/test/resources/application-test.yml
+  [PASS] libs/common/src/test/resources/fixtures/snapshot-metadata-baseline.json
+  [PASS] libs/common/src/test/resources/fixtures/snapshot-metadata-refresh.json
+  [PASS] libs/common/src/test/resources/fixtures/blob-ingestion-record.json
+  [PASS] libs/common/src/test/resources/fixtures/runtime-event-app.json
+  [PASS] libs/common/src/test/resources/fixtures/runtime-event-istio.json
+  [PASS] libs/common/src/test/java/com/flowforge/common/config/FlowForgePropertiesTest.java
+  [PASS] libs/common/src/test/java/com/flowforge/common/model/SharedModelsTest.java
+  [PASS] libs/common/src/test/java/com/flowforge/common/config/FlowForgePropertiesIntegrationTest.java
+  [PASS] services/api/build.gradle.kts
+  [PASS] services/api/src/main/java/com/flowforge/api/FlowForgeApiApplication.java
+  [PASS] services/orchestrator/build.gradle.kts
+  [PASS] services/orchestrator/src/main/java/com/flowforge/orchestrator/OrchestratorApplication.java
+  [PASS] libs/test-fixtures/build.gradle.kts
+  [PASS] gradlew
+  [PASS] gradle/wrapper/gradle-wrapper.properties
+
+================================================================================
+CHECK 3: Gradle Build
+================================================================================
+
+  ./gradlew clean build — BUILD SUCCESSFUL (unit tests + checkstyle included)
+
+  [PASS] Gradle build succeeded
+
+================================================================================
+CHECK 4: Unit Tests (./gradlew test)
+================================================================================
+
+  FlowForgePropertiesTest        3 tests, 0 failures
+  SharedModelsTest               5 tests, 0 failures
+  EntityMappingTest              3 tests, 0 failures
+  MetadataServiceUnitTest        4 tests, 0 failures
+  MinioStorageClientUnitTest     4 tests, 0 failures
+  MinioHealthIndicatorTest       2 tests, 0 failures
+  ─────────────────────────────────────────────────
+  Total: 21 tests, 0 failures
+
+  [PASS] All unit tests passed
+
+================================================================================
+CHECK 5: Make Targets
+================================================================================
+
+  make build   — BUILD SUCCESSFUL
+  make lint    — BUILD SUCCESSFUL (checkstyleMain)
+
+  [PASS] make build
+  [PASS] make lint
+
+================================================================================
+CHECK 6: Docker Base Image
+================================================================================
+
+  docker build -f docker/Dockerfile.base . — Image built successfully
+
+  [PASS] Docker base image built
+
+================================================================================
+SUMMARY
+================================================================================
+
+  ██████████████████████████████████████████████████
+  █                                                █
+  █   STAGE 01 VERIFICATION: ALL CHECKS PASSED    █
+  █                                                █
+  ██████████████████████████████████████████████████

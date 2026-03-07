@@ -1,0 +1,23 @@
+{
+  "eventId": "evt-istio-001",
+  "timestamp": "2026-03-07T10:15:30.456Z",
+  "sourceType": "ISTIO",
+  "service": "booking-service",
+  "namespace": "prod",
+  "pod": "booking-service-5f8b9c7d6-abc12",
+  "traceId": "4bf92f3577b34da6a3ce929d0e0e4736",
+  "spanId": "a2fb4a1d1a96d312",
+  "correlationId": null,
+  "requestId": null,
+  "httpMethod": "POST",
+  "path": "/api/v1/bookings",
+  "statusCode": 201,
+  "latencyMs": 48.7,
+  "targetService": "payment-service",
+  "exceptionType": null,
+  "message": "outbound|8080||payment-service.prod.svc.cluster.local",
+  "tags": {
+    "response_flags": "-",
+    "upstream_cluster": "outbound|8080||payment-service.prod.svc.cluster.local"
+  }
+}

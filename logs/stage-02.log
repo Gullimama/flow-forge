@@ -1,0 +1,88 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║               STAGE 02 — POSTGRESQL METADATA STORE                         ║
+║                        Test & Verification Report                          ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+Date:      2026-03-07
+
+================================================================================
+CHECK 1: Required Files (18/18)
+================================================================================
+
+  [PASS] libs/common/src/main/resources/db/migration/V1__initial_schema.sql
+  [PASS] libs/common/src/main/java/com/flowforge/common/entity/SnapshotEntity.java
+  [PASS] libs/common/src/main/java/com/flowforge/common/entity/JobEntity.java
+  [PASS] libs/common/src/main/java/com/flowforge/common/entity/BlobBatchEntity.java
+  [PASS] libs/common/src/main/java/com/flowforge/common/entity/BlobRecordEntity.java
+  [PASS] libs/common/src/main/java/com/flowforge/common/entity/ResearchRunEntity.java
+  [PASS] libs/common/src/main/java/com/flowforge/common/entity/ParseArtifactEntity.java
+  [PASS] libs/common/src/main/java/com/flowforge/common/repository/SnapshotRepository.java
+  [PASS] libs/common/src/main/java/com/flowforge/common/repository/JobRepository.java
+  [PASS] libs/common/src/main/java/com/flowforge/common/repository/BlobBatchRepository.java
+  [PASS] libs/common/src/main/java/com/flowforge/common/repository/BlobRecordRepository.java
+  [PASS] libs/common/src/main/java/com/flowforge/common/repository/ResearchRunRepository.java
+  [PASS] libs/common/src/main/java/com/flowforge/common/repository/ParseArtifactRepository.java
+  [PASS] libs/common/src/main/java/com/flowforge/common/service/MetadataService.java
+  [PASS] k8s/argocd/apps/postgresql.yaml
+  [PASS] k8s/infrastructure/postgresql/values.yaml
+  [PASS] libs/common/src/test/java/com/flowforge/common/repository/RepositoryIntegrationTest.java
+  [PASS] libs/common/src/test/java/com/flowforge/common/service/MetadataServiceIntegrationTest.java
+
+================================================================================
+CHECK 2: Gradle Build
+================================================================================
+
+  ./gradlew clean build — BUILD SUCCESSFUL
+
+  [PASS] Gradle build succeeded
+
+================================================================================
+CHECK 3: Unit Tests
+================================================================================
+
+  EntityMappingTest              3 tests, 0 failures
+  MetadataServiceUnitTest        4 tests, 0 failures
+  ─────────────────────────────────────────────────
+  Stage-2 specific: 7 tests, 0 failures
+
+  [PASS] Unit tests passed
+
+================================================================================
+CHECK 4: Integration Tests (Testcontainers PostgreSQL)
+================================================================================
+
+  RepositoryIntegrationTest           4 tests, 0 failures
+  MetadataServiceIntegrationTest      2 tests, 0 failures
+  FlowForgePropertiesIntegrationTest  1 test,  0 failures
+  ─────────────────────────────────────────────────
+  Total: 7 integration tests, 0 failures
+
+  [PASS] Integration tests passed
+
+================================================================================
+CHECK 5: Verification Table
+================================================================================
+
+  Check                    | Result
+  -------------------------|--------
+  Required files exist     | PASS (18/18)
+  Gradle builds            | PASS
+  Unit tests               | PASS
+  Integration tests        | PASS
+  make build               | PASS
+  make lint                | PASS
+  Create snapshot          | Covered by integration tests
+  Create job / opt. lock   | Covered by integration tests
+  Upsert parse artifact    | Covered by integration tests
+  Full snapshot lifecycle  | Covered by integration tests
+  PostgreSQL pod / ArgoCD  | N/A (AKS only)
+
+================================================================================
+SUMMARY
+================================================================================
+
+  ██████████████████████████████████████████████████
+  █                                                █
+  █   STAGE 02 VERIFICATION: ALL CHECKS PASSED    █
+  █                                                █
+  ██████████████████████████████████████████████████
