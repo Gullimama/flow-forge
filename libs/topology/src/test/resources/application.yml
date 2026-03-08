@@ -1,0 +1,37 @@
+flowforge:
+  minio:
+    enabled: false
+    endpoint: http://localhost:9000
+    access-key: minioadmin
+    secret-key: minioadmin
+    secure: false
+  azure:
+    enabled: false
+    connection-string: ""
+  opensearch:
+    hosts: []
+    username: ""
+    password: ""
+    index-prefix: ""
+  qdrant:
+    host: localhost
+    port: 6334
+    api-key: ""
+    collection-prefix: ""
+  neo4j:
+    uri: bolt://localhost:7687
+    user: neo4j
+    password: password
+    database: flowforge
+  postgres:
+    url: jdbc:postgresql://localhost:5432/flowforge
+    username: flowforge
+    password: flowforge
+  vllm:
+    base-url: http://localhost:8000
+    api-key: ""
+    model: ""
+  tei:
+    code-url: http://localhost:8081
+    log-url: http://localhost:8082
+    reranker-url: http://localhost:8083

@@ -1,0 +1,17 @@
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: booking-canary-vs
+spec:
+  hosts:
+    - booking-service
+  http:
+    - route:
+        - destination:
+            host: booking-service
+            subset: stable
+          weight: 80
+        - destination:
+            host: booking-service
+            subset: canary
+          weight: 20

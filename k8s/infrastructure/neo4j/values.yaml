@@ -1,0 +1,52 @@
+neo4j:
+  name: neo4j
+  edition: community
+  password:
+    fromExistingSecret:
+      name: neo4j-credentials
+      key: NEO4J_AUTH
+
+image:
+  customImage: neo4j:5.25-community
+
+config:
+  server.memory.heap.initial_size: "4g"
+  server.memory.heap.max_size: "4g"
+  server.memory.pagecache.size: "2g"
+  server.directories.plugins: /var/lib/neo4j/plugins
+  server.security.procedures.unrestricted: "apoc.*"
+
+apoc:
+  enabled: true
+
+volumes:
+  data:
+    mode: defaultStorageClass
+    defaultStorageClass:
+      requests:
+        storage: 50Gi
+
+resources:
+  requests:
+    cpu: "4"
+    memory: 8Gi
+  limits:
+    cpu: "4"
+    memory: 8Gi
+
+nodeSelector:
+  agentpool: cpupool
+
+services:
+  neo4j:
+    spec:
+      type: ClusterIP
+      ports:
+        - name: tcp-bolt
+          protocol: TCP
+          port: 7687
+          targetPort: 7687
+        - name: tcp-http
+          protocol: TCP
+          port: 7474
+          targetPort: 7474

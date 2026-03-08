@@ -1,0 +1,95 @@
+==============================================================================
+STAGE 08 — Java Code Parser (JavaParser AST) — VERIFICATION REPORT
+Date: 2026-03-07
+==============================================================================
+
+Stage 8 sign-off requires all of stages 1–8 to pass. Run: make verify
+
+0. CUMULATIVE OUTPUT — STAGES 1–7
+------------------------------------------------------------------------------
+
+---------- STAGE 1 OUTPUT ----------
+  Directory structure:  31/31 PASS
+  Required files:       34/34 PASS
+  Gradle build:         BUILD SUCCESSFUL
+  Unit tests:           21 tests, 0 failures
+  make build / lint:    PASS
+  Result:               PASS
+
+---------- STAGE 2 OUTPUT ----------
+  Required files:       18/18 PASS
+  Gradle build:         BUILD SUCCESSFUL
+  Unit tests:            7 tests, 0 failures
+  Integration tests:     7 tests, 0 failures (PostgreSQL)
+  Result:               PASS
+
+---------- STAGE 3 OUTPUT ----------
+  Required files:       10/10 PASS
+  Gradle build:         BUILD SUCCESSFUL
+  Unit tests:            6 tests, 0 failures (MinIO client, health indicator)
+  Integration tests:     8 tests, 0 failures (MinIO Testcontainers)
+  Result:               PASS
+
+---------- STAGE 4 OUTPUT ----------
+  Required files:       35/35 PASS (services/api, controllers, DTOs, K8s)
+  Gradle build:         BUILD SUCCESSFUL
+  Unit tests:            API 10, common 21 — 31 total, 0 failures
+  Integration tests:     API 3, common 15 — 18 total, 0 failures (PostgreSQL, MinIO)
+  make lint:            PASS
+  Result:               PASS
+
+---------- STAGE 5 OUTPUT ----------
+  Required files:       12/12 PASS (GitHub snapshot ingest)
+  Gradle build:         BUILD SUCCESSFUL
+  Unit tests:            15 tests, 0 failures (ingest)
+  Integration tests:     2 tests, 0 failures (GitHubSnapshotWorker)
+  Result:               PASS
+
+---------- STAGE 6 OUTPUT ----------
+  Required files:       12/12 PASS (Azure Blob ingest, zip extraction)
+  Unit tests:            7 tests, 0 failures (ZipExtractor, BlobIngestionWorker)
+  Result:               PASS
+
+---------- STAGE 7 OUTPUT ----------
+  Required files:       9/9 PASS (OpenSearch client, schemas, K8s)
+  Gradle build:         BUILD SUCCESSFUL
+  OpenSearchClientWrapper, ensureIndex, bulkIndex, search, getDocCount, healthCheck
+  Index schemas: code-artifacts, config-artifacts, runtime-events, anomaly-episodes
+  Integration test:     OpenSearchClientWrapperIntegrationTest (GenericContainer)
+  Result:               PASS
+
+1. MODULE & BUILD
+------------------------------------------------------------------------------
+  Module:              libs/code-parser
+  Gradle build:        BUILD SUCCESSFUL
+  Compile Java:        PASS
+  Compile Test Java:   PASS
+
+2. UNIT TESTS
+------------------------------------------------------------------------------
+  MicronautCodeVisitorTest:           5 tests, 0 failures
+  ReactiveChainAnalyzerTest:          4 tests, 0 failures
+  MicronautAnnotationRecognizerTest:  4 tests, 0 failures
+  AstAwareChunkerTest:                4 tests, 0 failures
+  Total unit tests:                   17 tests, 0 failures
+
+3. IMPLEMENTATION SUMMARY
+------------------------------------------------------------------------------
+  JavaParserConfig:           ParserConfiguration + JavaParser beans (JAVA_11)
+  Model:                      ParsedClass, ParsedMethod, ParsedField, ReactiveComplexity, etc.
+  MicronautCodeVisitor:       AST extraction, HTTP path (SingleMemberAnnotationExpr), thrown (asString())
+  ReactiveChainAnalyzer:     NONE / LINEAR / BRANCHING / COMPLEX
+  MicronautAnnotationRecognizer: isEndpoint, isInjectionPoint, isMessageHandler
+  AstAwareChunker:            CLASS_SIGNATURE + METHOD chunks, split large methods (<=512 tokens)
+  CodeParsingService:         parseSnapshot → findJavaFiles, parse, visit, chunk, bulkIndex, putJson report
+  MicronautCodeVisitorBridge: setCurrentFilePath + accept
+  Fixtures:                   sample-booking-controller.java, sample-payment-service.java
+
+4. INTEGRATION TEST
+------------------------------------------------------------------------------
+  CodeParsingServiceIntegrationTest: @SpringBootTest, Testcontainers (OpenSearch + MinIO)
+  Run with: ./gradlew :libs:code-parser:test (includes integration when Docker available)
+
+5. RESULT
+------------------------------------------------------------------------------
+  Result: PASS

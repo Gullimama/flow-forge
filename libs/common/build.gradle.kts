@@ -16,6 +16,8 @@ dependencies {
     api("com.fasterxml.jackson.core:jackson-databind")
     api("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
     implementation(libs.minio)
+    implementation(libs.opensearch.client)
+    implementation(libs.opensearch.rest.client)
     implementation("org.springframework.boot:spring-boot-starter-flyway")
     implementation(libs.flyway.postgresql)
     runtimeOnly(libs.postgresql)

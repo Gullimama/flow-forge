@@ -1,0 +1,28 @@
+replicas: 3
+
+resources:
+  requests:
+    cpu: "4"
+    memory: 8Gi
+  limits:
+    cpu: "4"
+    memory: 8Gi
+
+config:
+  opensearch.yml: |
+    plugins.security.disabled: true
+
+extraEnvs:
+  - name: OPENSEARCH_JAVA_OPTS
+    value: "-Xmx4g -Xms4g"
+
+persistence:
+  enabled: true
+  size: 100Gi
+
+service:
+  type: ClusterIP
+  port: 9200
+
+nodeSelector:
+  agentpool: cpupool

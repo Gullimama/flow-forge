@@ -1,0 +1,35 @@
+{
+  "settings": {
+    "number_of_shards": 2,
+    "analysis": {
+      "analyzer": {
+        "java_code_analyzer": {
+          "type": "custom",
+          "tokenizer": "standard",
+          "filter": ["java_camel_case", "lowercase", "java_stop"]
+        }
+      },
+      "filter": {
+        "java_camel_case": { "type": "word_delimiter_graph", "split_on_case_change": true },
+        "java_stop": { "type": "stop", "stopwords": ["import", "package", "public", "private", "protected", "class", "interface", "void", "return", "new", "this", "super"] }
+      }
+    }
+  },
+  "mappings": {
+    "properties": {
+      "snapshot_id": { "type": "keyword" },
+      "service_name": { "type": "keyword" },
+      "file_path": { "type": "keyword" },
+      "class_fqn": { "type": "keyword" },
+      "method_name": { "type": "keyword" },
+      "chunk_type": { "type": "keyword" },
+      "annotations": { "type": "keyword" },
+      "content": { "type": "text", "analyzer": "java_code_analyzer" },
+      "content_hash": { "type": "keyword" },
+      "reactive_complexity": { "type": "keyword" },
+      "line_start": { "type": "integer" },
+      "line_end": { "type": "integer" },
+      "indexed_at": { "type": "date" }
+    }
+  }
+}

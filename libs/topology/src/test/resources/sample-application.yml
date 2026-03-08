@@ -1,0 +1,16 @@
+micronaut:
+  application:
+    name: booking-service
+  http:
+    services:
+      payment-service:
+        url: http://payment-service:8080
+      inventory-service:
+        url: http://inventory-service:8080
+datasources:
+  default:
+    url: jdbc:postgresql://postgres:5432/bookings
+kafka:
+  consumers:
+    booking-events:
+      group-id: booking-consumer

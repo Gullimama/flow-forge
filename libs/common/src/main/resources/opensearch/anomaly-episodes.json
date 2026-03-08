@@ -1,0 +1,19 @@
+{
+  "settings": {
+    "number_of_shards": 2,
+    "analysis": {
+      "analyzer": {
+        "default": { "type": "standard" }
+      }
+    }
+  },
+  "mappings": {
+    "properties": {
+      "service_name": { "type": "keyword" },
+      "start_time": { "type": "date" },
+      "end_time": { "type": "date" },
+      "score": { "type": "float" },
+      "indexed_at": { "type": "date" }
+    }
+  }
+}

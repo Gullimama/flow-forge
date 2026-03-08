@@ -1,0 +1,128 @@
+==============================================================================
+STAGE 12 — Log Anomaly Detection (Smile Isolation Forest) — VERIFICATION REPORT
+Date: 2026-03-07
+==============================================================================
+
+Stage 12 sign-off requires all of stages 1–12 to pass. Run: make verify
+
+0. CUMULATIVE OUTPUT — STAGES 1–11
+------------------------------------------------------------------------------
+
+---------- STAGE 1 OUTPUT ----------
+  Directory structure:  31/31 PASS
+  Required files:       34/34 PASS
+  Gradle build:         BUILD SUCCESSFUL
+  Unit tests:           21 tests, 0 failures
+  make build / lint:    PASS
+  Result:               PASS
+
+---------- STAGE 2 OUTPUT ----------
+  Required files:       18/18 PASS
+  Gradle build:         BUILD SUCCESSFUL
+  Unit tests:            7 tests, 0 failures
+  Integration tests:     7 tests, 0 failures (PostgreSQL)
+  Result:               PASS
+
+---------- STAGE 3 OUTPUT ----------
+  Required files:       10/10 PASS
+  Gradle build:         BUILD SUCCESSFUL
+  Unit tests:            6 tests, 0 failures (MinIO client, health indicator)
+  Integration tests:     8 tests, 0 failures (MinIO Testcontainers)
+  Result:               PASS
+
+---------- STAGE 4 OUTPUT ----------
+  Required files:       35/35 PASS (services/api, controllers, DTOs, K8s)
+  Gradle build:         BUILD SUCCESSFUL
+  Unit tests:            API 10, common 21 — 31 total, 0 failures
+  Integration tests:     API 3, common 15 — 18 total, 0 failures (PostgreSQL, MinIO)
+  make lint:            PASS
+  Result:               PASS
+
+---------- STAGE 5 OUTPUT ----------
+  Required files:       12/12 PASS (GitHub snapshot ingest)
+  Gradle build:         BUILD SUCCESSFUL
+  Unit tests:            15 tests, 0 failures (ingest)
+  Integration tests:     2 tests, 0 failures (GitHubSnapshotWorker)
+  Result:               PASS
+
+---------- STAGE 6 OUTPUT ----------
+  Required files:       12/12 PASS (Azure Blob ingest, zip extraction)
+  Unit tests:            7 tests, 0 failures (ZipExtractor, BlobIngestionWorker)
+  Result:               PASS
+
+---------- STAGE 7 OUTPUT ----------
+  Required files:       9/9 PASS (OpenSearch client, schemas, K8s)
+  Gradle build:         BUILD SUCCESSFUL
+  OpenSearchClientWrapper, ensureIndex, bulkIndex, search, getDocCount, healthCheck
+  Index schemas: code-artifacts, config-artifacts, runtime-events, anomaly-episodes
+  Integration test:     OpenSearchClientWrapperIntegrationTest (GenericContainer)
+  Result:               PASS
+
+---------- STAGE 8 OUTPUT ----------
+  Module:              libs/code-parser
+  Gradle build:        BUILD SUCCESSFUL
+  Unit tests:          17 tests, 0 failures (visitor, analyzer, chunker, recognizer)
+  CodeParsingService, AstAwareChunker, MicronautCodeVisitor, JavaParser
+  Result:               PASS
+
+---------- STAGE 9 OUTPUT ----------
+  Module:              libs/log-parser
+  Gradle build:        BUILD SUCCESSFUL
+  Unit tests:          18 tests, 0 failures (DrainParser, LogLineParser, TraceContextExtractor)
+  LogParsingService, DrainParser, LogLineParser, TraceContextExtractor
+  Integration test:    LogParsingServiceIntegrationTest (OpenSearch + MinIO)
+  Result:               PASS
+
+---------- STAGE 10 OUTPUT ----------
+  Module:              libs/topology
+  Gradle build:        BUILD SUCCESSFUL
+  Unit tests:           parser tests (Kubernetes, Micronaut, Istio), 0 failures
+  TopologyEnrichmentService, config-artifacts index, MinIO evidence/topology
+  Integration test:     TopologyEnrichmentServiceIntegrationTest (OpenSearch + MinIO)
+  Result:               PASS
+
+---------- STAGE 11 OUTPUT ----------
+  Module:              libs/graph
+  Gradle build:        BUILD SUCCESSFUL
+  Neo4jGraphBuilder, Neo4jGraphQueryService, Neo4jConfig
+  Unit tests:           Neo4jGraphBuilderTest, Neo4jGraphQueryServiceTest
+  Integration tests:   Neo4jGraphBuilderIntegrationTest, Neo4jGraphQueryServiceIntegrationTest (Testcontainers Neo4j)
+  Result:               PASS
+
+1. MODULE & BUILD
+------------------------------------------------------------------------------
+  Module:              libs/anomaly
+  Gradle build:        BUILD SUCCESSFUL
+  Compile Java:        PASS
+  Compile Test Java:   PASS
+  Dependencies:        libs:common, libs:log-parser, smile-core 3.1.1
+  test:                excludes @Tag("integration")
+
+2. IMPLEMENTATION SUMMARY
+------------------------------------------------------------------------------
+  LogFeatureEngineer:    5-min windows; LogFeatureVector (errorRate, uniqueTemplateRatio, eventRate,
+                         p99Latency, errorBurstScore, newTemplateRate, traceSpanRatio, exceptionRate, totalEvents)
+  AnomalyDetectorModel:  Smile IsolationForest.fit(matrix); score(vector), isAnomalous(vector, threshold);
+                         serializeModel/loadModel (ObjectOutputStream); AnomalyConfig @Bean with num-trees, subsample-size
+  AnomalyEpisodeBuilder: MERGE_GAP 10 min; buildEpisodes(snapshotId, serviceName, vectors, model, threshold);
+                         AnomalyEpisode (episodeId, snapshotId, serviceName, startTime, endTime, severity, peakScore, windows, topAnomalousTemplates, summary);
+                         AnomalySeverity LOW/MEDIUM/HIGH/CRITICAL by score bands
+  AnomalyDetectionService: fetchLogEvents from runtime-events (batch_id, service_name); extractFeatures; train per-service model;
+                         buildEpisodes; putObject model-artifacts/anomaly/{snapshotId}/{service}.smile; bulkIndex anomaly-episodes;
+                         putJson evidence/anomaly-report/{snapshotId}.json; meter flowforge.anomaly.episodes.detected
+
+3. UNIT TESTS
+------------------------------------------------------------------------------
+  LogFeatureEngineerTest:     extractFeatures empty/sorted/windows, errorRate, uniqueTemplateRatio, traceSpanRatio, exceptionRate, 8 dimensions
+  AnomalyDetectorModelTest:   score before training throws; train+score normal low, anomalous high; isAnomalous threshold; serialize round-trip
+  AnomalyEpisodeBuilderTest: no anomalous → empty; 3 consecutive → 1 episode; 15-min gap → 2 episodes; 10-min gap → merge; peakScore/severity
+
+4. INTEGRATION TEST (@Tag("integration"))
+------------------------------------------------------------------------------
+  AnomalyDetectionServiceIntegrationTest: @SpringBootTest(TestConfig), @MockitoBean OpenSearch/MinIO;
+  detectAnomalies full pipeline → putObject model-artifacts, putJson evidence;
+  detectAnomalies multiple services → putObject 3 times
+
+5. RESULT
+------------------------------------------------------------------------------
+  Result: PASS

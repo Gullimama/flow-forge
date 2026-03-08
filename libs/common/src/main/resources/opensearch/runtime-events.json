@@ -1,0 +1,24 @@
+{
+  "settings": {
+    "number_of_shards": 2,
+    "analysis": {
+      "analyzer": {
+        "default": { "type": "standard" }
+      }
+    }
+  },
+  "mappings": {
+    "properties": {
+      "batch_id": { "type": "keyword" },
+      "service_name": { "type": "keyword" },
+      "log_type": { "type": "keyword" },
+      "timestamp": { "type": "date" },
+      "template_id": { "type": "keyword" },
+      "message": { "type": "text" },
+      "trace_id": { "type": "keyword" },
+      "span_id": { "type": "keyword" },
+      "severity": { "type": "keyword" },
+      "indexed_at": { "type": "date" }
+    }
+  }
+}

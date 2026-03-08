@@ -1,0 +1,130 @@
+==============================================================================
+STAGE 07 — OpenSearch Setup & Index Management — VERIFICATION REPORT
+Date: 2026-03-08
+==============================================================================
+
+Stage 7 sign-off requires all of stages 1–7 to pass. Run: make verify
+
+0. CUMULATIVE OUTPUT — STAGES 1–7
+------------------------------------------------------------------------------
+
+---------- STAGE 1 OUTPUT ----------
+  Directory structure:  31/31 PASS
+  Required files:       34/34 PASS
+  Gradle build:         BUILD SUCCESSFUL
+  Unit tests:           21 tests, 0 failures
+  make build / lint:    PASS
+  Result:               PASS
+
+---------- STAGE 2 OUTPUT ----------
+  Required files:       18/18 PASS
+  Gradle build:         BUILD SUCCESSFUL
+  Unit tests:            7 tests, 0 failures
+  Integration tests:     7 tests, 0 failures (PostgreSQL)
+  Result:               PASS
+
+---------- STAGE 3 OUTPUT ----------
+  Required files:       10/10 PASS
+  Gradle build:         BUILD SUCCESSFUL
+  Unit tests:            6 tests, 0 failures (MinIO client, health indicator)
+  Integration tests:     8 tests, 0 failures (MinIO Testcontainers)
+  Result:               PASS
+
+---------- STAGE 4 OUTPUT ----------
+  Required files:       35/35 PASS (services/api, controllers, DTOs, K8s)
+  Gradle build:         BUILD SUCCESSFUL
+  Unit tests:            API 10, common 21 — 31 total, 0 failures
+  Integration tests:     API 3, common 15 — 18 total, 0 failures (PostgreSQL, MinIO)
+  make lint:            PASS
+  Result:               PASS
+
+---------- STAGE 5 OUTPUT ----------
+  Required files:       12/12 PASS (GitHub snapshot ingest)
+  Gradle build:         BUILD SUCCESSFUL
+  Unit tests:            15 tests, 0 failures (ingest)
+  Integration tests:     2 tests, 0 failures (GitHubSnapshotWorker)
+  Result:               PASS
+
+---------- STAGE 6 OUTPUT ----------
+  Required files:       12/12 PASS (Azure Blob ingest, zip extraction)
+  Unit tests:            7 tests, 0 failures (ZipExtractor, BlobIngestionWorker)
+  Result:               PASS
+
+---------- STAGE 7 OUTPUT ----------
+
+1. REQUIRED FILES CHECK
+------------------------------------------------------------------------------
+ [PASS]  libs/common OpenSearchClientWrapper, OpenSearchConfig, OpenSearchIndexInitializer
+ [PASS]  libs/common OpenSearchHealthIndicator
+ [PASS]  libs/common/src/main/resources/opensearch/code-artifacts.json
+ [PASS]  libs/common/src/main/resources/opensearch/config-artifacts.json
+ [PASS]  libs/common/src/main/resources/opensearch/runtime-events.json
+ [PASS]  libs/common/src/main/resources/opensearch/anomaly-episodes.json
+ [PASS]  k8s/argocd/apps/opensearch.yaml
+ [PASS]  k8s/infrastructure/opensearch/values.yaml
+ [PASS]  libs/common OpenSearchClientWrapperIntegrationTest
+
+Result: 9/9 required items present
+
+2. GRADLE BUILD
+------------------------------------------------------------------------------
+Command: ./gradlew clean build
+Result: BUILD SUCCESSFUL (with unit tests)
+Dependencies: opensearch-java, opensearch-rest-client (libs.versions.toml)
+
+3. OPENSEARCH CLIENT WRAPPER
+------------------------------------------------------------------------------
+ - ensureIndex(indexName, settingsJson)  : PUT index with raw JSON; idempotent (ignores resource_already_exists_exception)
+ - bulkIndex(indexName, documents)       : BulkResult(errors)
+ - search(indexName, query, size)        : SearchResult(hits)
+ - multiMatchSearch(indexName, queryText, fields, topK) : List<SearchHit>
+ - deleteByQuery(indexName, query)       : POST _delete_by_query
+ - getDocCount(indexName)                : count API
+ - refreshIndex(indexName)               : POST _refresh (for tests)
+ - healthCheck()                         : GET _cluster/health, not red
+
+4. INDEX SCHEMAS
+------------------------------------------------------------------------------
+ - code-artifacts   : java_code_analyzer (camelCase + Java stopwords), chunk_type, content, snapshot_id, service_name, etc.
+ - config-artifacts : snapshot_id, service_name, file_path, artifact_type, content
+ - runtime-events   : batch_id, service_name, log_type, timestamp, template_id, message, trace_id, severity
+ - anomaly-episodes : service_name, start_time, end_time, score
+
+5. K8S / DOCKER
+------------------------------------------------------------------------------
+ - docker-compose: opensearch 2.18.0 (single-node, security disabled), port 9200
+ - ArgoCD app: opensearch, sync-wave 2, Helm chart opensearch 2.28.0, values from k8s/infrastructure/opensearch/values.yaml
+ - values: 3 replicas, 8Gi heap, 100Gi PVC, security disabled, ClusterIP 9200
+
+6. INTEGRATION TEST
+------------------------------------------------------------------------------
+ - OpenSearchClientWrapperIntegrationTest: @SpringBootTest(TestJpaApplication), GenericContainer(opensearch:2.18.0)
+ - ensureIndex_createsIndexWithSettings, ensureIndex_calledTwice_isIdempotent
+ - bulkIndex_indexesDocumentsAndReturnsNoErrors, multiMatchSearch_returnsScoredResults
+ - deleteByQuery_removesMatchingDocuments, fullLifecycle_createIndexBulkSearchDelete, healthCheck_returnsTrue
+ - Requires Docker; @DynamicPropertySource sets flowforge.opensearch.hosts[0] to container URL
+
+7. VERIFICATION TABLE
+------------------------------------------------------------------------------
+| Check                    | Result | Notes                              |
+|--------------------------|--------|------------------------------------|
+| OpenSearchConfig         | PASS   | RestClient + OpenSearchClient from flowforge.opensearch.hosts |
+| OpenSearchClientWrapper  | PASS   | ensureIndex, bulkIndex, search, multiMatchSearch, deleteByQuery, getDocCount, healthCheck |
+| Index initializer        | PASS   | ApplicationRunner ensures 4 indexes on startup |
+| OpenSearchHealthIndicator| PASS   | Actuator health contributor        |
+| code-artifacts schema    | PASS   | java_code_analyzer, mappings        |
+| config/runtime/anomaly   | PASS   | Minimal mappings for later stages  |
+| K8s ArgoCD + values      | PASS   | opensearch app, flowforge-infra     |
+
+8. SUMMARY
+------------------------------------------------------------------------------
+Stage 07 — OpenSearch Setup & Index Management: IMPLEMENTED
+
+ - OpenSearch Java client (opensearch-java + opensearch-rest-client) with RestClient for raw index/create and health
+ - Four index schemas: code-artifacts (with java_code_analyzer), config-artifacts, runtime-events, anomaly-episodes
+ - OpenSearchClientWrapper: ensureIndex (idempotent), bulkIndex, search, multiMatchSearch, deleteByQuery, getDocCount, refreshIndex, healthCheck
+ - OpenSearchIndexInitializer runs on startup and ensures all 4 indexes
+ - OpenSearchHealthIndicator for Actuator
+ - K8s: ArgoCD application opensearch (Helm 2.28.0), values in k8s/infrastructure/opensearch/values.yaml
+ - Integration test with GenericContainer (opensearch:2.18.0); make verify runs integrationTest (requires Docker)
+==============================================================================

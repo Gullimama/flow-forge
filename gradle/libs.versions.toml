@@ -18,6 +18,7 @@ micrometer = "1.15.0"
 jackson = "2.18.3"
 fabric8 = "7.0.1"
 jgit = "7.1.0.202411261347-r"
+neo4j-driver = "5.26.0"
 
 [libraries]
 spring-boot-starter-web = { module = "org.springframework.boot:spring-boot-starter-web" }
@@ -29,7 +30,10 @@ spring-ai-qdrant-store = { module = "org.springframework.ai:spring-ai-qdrant-sto
 spring-data-neo4j = { module = "org.springframework.boot:spring-boot-starter-data-neo4j" }
 minio = { module = "io.minio:minio", version.ref = "minio" }
 opensearch-client = { module = "org.opensearch.client:opensearch-java", version.ref = "opensearch" }
-javaparser = { module = "com.github.javaparser:javaparser-core", version.ref = "javaparser" }
+opensearch-rest-client = { module = "org.opensearch.client:opensearch-rest-client", version.ref = "opensearch" }
+javaparser-core = { module = "com.github.javaparser:javaparser-core", version.ref = "javaparser" }
+javaparser-symbol-solver-core = { module = "com.github.javaparser:javaparser-symbol-solver-core", version.ref = "javaparser" }
+guava = { module = "com.google.guava:guava", version = "33.3.1-jre" }
 djl-api = { module = "ai.djl:api", version.ref = "djl" }
 djl-pytorch = { module = "ai.djl.pytorch:pytorch-engine", version.ref = "djl" }
 djl-onnxruntime = { module = "ai.djl.onnxruntime:onnxruntime-engine", version.ref = "djl" }
@@ -43,6 +47,7 @@ postgresql = { module = "org.postgresql:postgresql" }
 testcontainers-junit5 = { module = "org.testcontainers:junit-jupiter", version.ref = "testcontainers" }
 testcontainers-postgresql = { module = "org.testcontainers:postgresql", version.ref = "testcontainers" }
 testcontainers-neo4j = { module = "org.testcontainers:neo4j", version.ref = "testcontainers" }
+neo4j-java-driver = { module = "org.neo4j.driver:neo4j-java-driver", version.ref = "neo4j-driver" }
 testcontainers-minio = { module = "org.testcontainers:minio", version.ref = "testcontainers" }
 jgit = { module = "org.eclipse.jgit:org.eclipse.jgit", version.ref = "jgit" }
 azure-storage-blob = { module = "com.azure:azure-storage-blob", version = "12.29.0" }

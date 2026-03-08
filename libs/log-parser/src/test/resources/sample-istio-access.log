@@ -1,0 +1,3 @@
+[2024-01-15T10:30:45.000Z] "GET /api/bookings/123 HTTP/1.1" 200 -
+[2024-01-15T10:30:46.000Z] "POST /api/bookings HTTP/1.1" 201 -
+[2024-01-15T10:30:47.000Z] "GET /api/bookings/456 HTTP/1.1" 404 -

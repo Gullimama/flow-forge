@@ -1,0 +1,117 @@
+==============================================================================
+STAGE 10 — Topology Enrichment (Fabric8 Kubernetes Client) — VERIFICATION REPORT
+Date: 2026-03-07
+==============================================================================
+
+Stage 10 sign-off requires all of stages 1–10 to pass. Run: make verify
+
+0. CUMULATIVE OUTPUT — STAGES 1–9
+------------------------------------------------------------------------------
+
+---------- STAGE 1 OUTPUT ----------
+  Directory structure:  31/31 PASS
+  Required files:       34/34 PASS
+  Gradle build:         BUILD SUCCESSFUL
+  Unit tests:           21 tests, 0 failures
+  make build / lint:    PASS
+  Result:               PASS
+
+---------- STAGE 2 OUTPUT ----------
+  Required files:       18/18 PASS
+  Gradle build:         BUILD SUCCESSFUL
+  Unit tests:            7 tests, 0 failures
+  Integration tests:     7 tests, 0 failures (PostgreSQL)
+  Result:               PASS
+
+---------- STAGE 3 OUTPUT ----------
+  Required files:       10/10 PASS
+  Gradle build:         BUILD SUCCESSFUL
+  Unit tests:            6 tests, 0 failures (MinIO client, health indicator)
+  Integration tests:     8 tests, 0 failures (MinIO Testcontainers)
+  Result:               PASS
+
+---------- STAGE 4 OUTPUT ----------
+  Required files:       35/35 PASS (services/api, controllers, DTOs, K8s)
+  Gradle build:         BUILD SUCCESSFUL
+  Unit tests:            API 10, common 21 — 31 total, 0 failures
+  Integration tests:     API 3, common 15 — 18 total, 0 failures (PostgreSQL, MinIO)
+  make lint:            PASS
+  Result:               PASS
+
+---------- STAGE 5 OUTPUT ----------
+  Required files:       12/12 PASS (GitHub snapshot ingest)
+  Gradle build:         BUILD SUCCESSFUL
+  Unit tests:            15 tests, 0 failures (ingest)
+  Integration tests:     2 tests, 0 failures (GitHubSnapshotWorker)
+  Result:               PASS
+
+---------- STAGE 6 OUTPUT ----------
+  Required files:       12/12 PASS (Azure Blob ingest, zip extraction)
+  Unit tests:            7 tests, 0 failures (ZipExtractor, BlobIngestionWorker)
+  Result:               PASS
+
+---------- STAGE 7 OUTPUT ----------
+  Required files:       9/9 PASS (OpenSearch client, schemas, K8s)
+  Gradle build:         BUILD SUCCESSFUL
+  OpenSearchClientWrapper, ensureIndex, bulkIndex, search, getDocCount, healthCheck
+  Index schemas: code-artifacts, config-artifacts, runtime-events, anomaly-episodes
+  Integration test:     OpenSearchClientWrapperIntegrationTest (GenericContainer)
+  Result:               PASS
+
+---------- STAGE 8 OUTPUT ----------
+  Module:              libs/code-parser
+  Gradle build:        BUILD SUCCESSFUL
+  Unit tests:          17 tests, 0 failures (visitor, analyzer, chunker, recognizer)
+  CodeParsingService, AstAwareChunker, MicronautCodeVisitor, JavaParser
+  Result:               PASS
+
+---------- STAGE 9 OUTPUT ----------
+  Module:              libs/log-parser
+  Gradle build:        BUILD SUCCESSFUL
+  Unit tests:          18 tests, 0 failures (DrainParser, LogLineParser, TraceContextExtractor)
+  LogParsingService, DrainParser, LogLineParser, TraceContextExtractor
+  Integration test:    LogParsingServiceIntegrationTest (OpenSearch + MinIO)
+  Result:               PASS
+
+1. MODULE & BUILD
+------------------------------------------------------------------------------
+  Module:              libs/topology
+  Gradle build:        BUILD SUCCESSFUL
+  Compile Java:        PASS
+  Compile Test Java:   PASS
+  Dependencies:        libs:common, Fabric8 kubernetes-client 7.0.1, jackson-dataformat-yaml
+
+2. UNIT TESTS
+------------------------------------------------------------------------------
+  KubernetesManifestParserTest:   7 tests, 0 failures (Deployment/Ingress/ConfigMap, ports/resources, env+secretRef, sealed dispatch, malformed YAML)
+  MicronautConfigParserTest:      HTTP_CALL, KAFKA_CONSUME, DATABASE_CONNECT, empty config
+  IstioManifestParserTest:        VirtualService→SERVICE_DEPENDENCY, canary weight, DestinationRule, Gateway→INGRESS_ROUTE, mixed manifests
+  Total unit tests:               all parser tests, 0 failures
+
+3. IMPLEMENTATION SUMMARY
+------------------------------------------------------------------------------
+  Model:                 TopologyNode (ServiceNode, IngressNode, KafkaTopicNode, DatabaseNode, ConfigMapNode), TopologyEdge (EdgeType), ContainerPort, ResourceLimits, EnvVar, IngressRule
+  KubernetesManifestParser:  Fabric8 Serialization.unmarshal; Deployment→ServiceNode (image, replicas, ports, resources, envVars), Service→ServiceNode, Ingress (networking.v1)→IngressNode, ConfigMap→ConfigMapNode
+  MicronautConfigParser:     application.yml → HTTP_CALL, KAFKA_* edges, datasource url→DATABASE_CONNECT, optional Redis
+  IstioManifestParser:       VirtualService, DestinationRule, Gateway → SERVICE_DEPENDENCY, INGRESS_ROUTE edges and metadata
+  TopologyEnrichmentService: snapshotDir/k8s (nodes), config/<service>/application.yml + istio (edges); node/edge→config-artifacts docs; TopologyGraph→MinIO evidence/topology/{snapshotId}.json; returns TopologyResult(nodeCount, edgeCount)
+  Parsers use:               io.fabric8.kubernetes.api.model.apps.Deployment, io.fabric8.kubernetes.api.model.networking.v1.Ingress
+
+4. INTEGRATION TEST
+------------------------------------------------------------------------------
+  TopologyEnrichmentServiceIntegrationTest: @SpringBootTest(TestTopologyApplication), Testcontainers (OpenSearch + MinIO)
+  Full topology run → nodeCount/edgeCount > 0, config-artifacts doc count = nodeCount + edgeCount
+  Topology JSON in MinIO evidence/topology/{snapshotId}.json (nodes, edges)
+  With sample-virtualservice in istio → edgeCount > 0
+  Run with: ./gradlew :libs:topology:test (includes integration when Docker available)
+
+5. FIXTURES
+------------------------------------------------------------------------------
+  sample-deployment.yaml, sample-ingress.yaml (networking.k8s.io/v1), sample-configmap.yaml
+  sample-application.yml (micronaut http services, datasource, kafka consumers)
+  sample-deployment-with-secrets.yaml, sample-virtualservice.yaml, sample-virtualservice-canary.yaml
+  sample-destinationrule.yaml, sample-gateway.yaml
+
+6. RESULT
+------------------------------------------------------------------------------
+  Result: PASS

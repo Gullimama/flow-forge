@@ -1,0 +1,126 @@
+==============================================================================
+STAGE 11 — Neo4j Knowledge Graph — VERIFICATION REPORT
+Date: 2026-03-07
+==============================================================================
+
+Stage 11 sign-off requires all of stages 1–11 to pass. Run: make verify
+
+0. CUMULATIVE OUTPUT — STAGES 1–10
+------------------------------------------------------------------------------
+
+---------- STAGE 1 OUTPUT ----------
+  Directory structure:  31/31 PASS
+  Required files:       34/34 PASS
+  Gradle build:         BUILD SUCCESSFUL
+  Unit tests:           21 tests, 0 failures
+  make build / lint:    PASS
+  Result:               PASS
+
+---------- STAGE 2 OUTPUT ----------
+  Required files:       18/18 PASS
+  Gradle build:         BUILD SUCCESSFUL
+  Unit tests:            7 tests, 0 failures
+  Integration tests:     7 tests, 0 failures (PostgreSQL)
+  Result:               PASS
+
+---------- STAGE 3 OUTPUT ----------
+  Required files:       10/10 PASS
+  Gradle build:         BUILD SUCCESSFUL
+  Unit tests:            6 tests, 0 failures (MinIO client, health indicator)
+  Integration tests:     8 tests, 0 failures (MinIO Testcontainers)
+  Result:               PASS
+
+---------- STAGE 4 OUTPUT ----------
+  Required files:       35/35 PASS (services/api, controllers, DTOs, K8s)
+  Gradle build:         BUILD SUCCESSFUL
+  Unit tests:            API 10, common 21 — 31 total, 0 failures
+  Integration tests:     API 3, common 15 — 18 total, 0 failures (PostgreSQL, MinIO)
+  make lint:            PASS
+  Result:               PASS
+
+---------- STAGE 5 OUTPUT ----------
+  Required files:       12/12 PASS (GitHub snapshot ingest)
+  Gradle build:         BUILD SUCCESSFUL
+  Unit tests:            15 tests, 0 failures (ingest)
+  Integration tests:     2 tests, 0 failures (GitHubSnapshotWorker)
+  Result:               PASS
+
+---------- STAGE 6 OUTPUT ----------
+  Required files:       12/12 PASS (Azure Blob ingest, zip extraction)
+  Unit tests:            7 tests, 0 failures (ZipExtractor, BlobIngestionWorker)
+  Result:               PASS
+
+---------- STAGE 7 OUTPUT ----------
+  Required files:       9/9 PASS (OpenSearch client, schemas, K8s)
+  Gradle build:         BUILD SUCCESSFUL
+  OpenSearchClientWrapper, ensureIndex, bulkIndex, search, getDocCount, healthCheck
+  Index schemas: code-artifacts, config-artifacts, runtime-events, anomaly-episodes
+  Integration test:     OpenSearchClientWrapperIntegrationTest (GenericContainer)
+  Result:               PASS
+
+---------- STAGE 8 OUTPUT ----------
+  Module:              libs/code-parser
+  Gradle build:        BUILD SUCCESSFUL
+  Unit tests:          17 tests, 0 failures (visitor, analyzer, chunker, recognizer)
+  CodeParsingService, AstAwareChunker, MicronautCodeVisitor, JavaParser
+  Result:               PASS
+
+---------- STAGE 9 OUTPUT ----------
+  Module:              libs/log-parser
+  Gradle build:        BUILD SUCCESSFUL
+  Unit tests:          18 tests, 0 failures (DrainParser, LogLineParser, TraceContextExtractor)
+  LogParsingService, DrainParser, LogLineParser, TraceContextExtractor
+  Integration test:    LogParsingServiceIntegrationTest (OpenSearch + MinIO)
+  Result:               PASS
+
+---------- STAGE 10 OUTPUT ----------
+  Module:              libs/topology
+  Gradle build:        BUILD SUCCESSFUL
+  Unit tests:           parser tests (Kubernetes, Micronaut, Istio), 0 failures
+  TopologyEnrichmentService, config-artifacts index, MinIO evidence/topology
+  Integration test:     TopologyEnrichmentServiceIntegrationTest (OpenSearch + MinIO)
+  Result:               PASS
+
+1. MODULE & BUILD
+------------------------------------------------------------------------------
+  Module:              libs/graph
+  Gradle build:        BUILD SUCCESSFUL
+  Compile Java:        PASS
+  Compile Test Java:   PASS
+  Dependencies:        libs:common, libs:code-parser, libs:log-parser, libs:topology, neo4j-java-driver 5.26.0
+  test:                excludes @Tag("integration")
+  integrationTest:     includes @Tag("integration") (Testcontainers Neo4j)
+
+2. K8S
+------------------------------------------------------------------------------
+  k8s/argocd/apps/neo4j.yaml:        ArgoCD Application (Helm neo4j 5.25.1, flowforge-infra)
+  k8s/infrastructure/neo4j/values.yaml:  neo4j community, APOC, heap/pagecache, ClusterIP 7687/7474
+
+3. IMPLEMENTATION SUMMARY
+------------------------------------------------------------------------------
+  Neo4jConfig:           Driver bean from FlowForgeProperties.neo4j (uri, user, password), pool 50, timeout 30s
+  Neo4jGraphBuilder:     buildGraph(snapshotId, TopologyGraph, List<ParsedClass>, Map<String, LogCluster>)
+                         createConstraintsAndIndexes (Service, Class unique; Method, Endpoint, LogTemplate indexes)
+                         createTopologyNode (Service, KafkaTopic, Database, Ingress, ConfigMap)
+                         createClassNode, createMethodNode, createEndpointNode (HTTP methods only)
+                         createLogTemplateNode (templateId, template, matchCount)
+                         createTopologyEdge (CALLS_HTTP, PRODUCES_TO, CONSUMES_FROM, CONNECTS_TO, USES_CONFIG, INGRESS_ROUTE, SERVICE_DEPENDENCY)
+                         linkClassToService (first service in topology), HAS_METHOD, INJECTS
+                         Metrics: flowforge.graph.nodes.created, flowforge.graph.relationships.created
+  Neo4jGraphQueryService: getServiceNeighborhood(serviceName, hops), getCallChain(from, to),
+                         getServiceEndpoints(serviceName), findComplexReactiveMethods()
+  GraphBuildResult:      nodesCreated, relationshipsCreated
+
+4. UNIT TESTS
+------------------------------------------------------------------------------
+  Neo4jGraphBuilderTest:     4 tests (Testcontainers Neo4j) — service nodes, endpoints only for HTTP, INJECTS edges, all topology node types
+  Neo4jGraphQueryServiceTest: 3 tests (mocked Session) — executeRead invoked, getCallChain empty, findComplexReactiveMethods returns BRANCHING
+
+5. INTEGRATION TESTS (@Tag("integration"))
+------------------------------------------------------------------------------
+  Neo4jGraphBuilderIntegrationTest:  buildGraph_createsConstraintsInNeo4j, buildGraph_serviceNodesQueryableAfterBuild (CALLS_HTTP), buildGraph_fullGraphWithClassesMethodsAndEndpoints
+  Neo4jGraphQueryServiceIntegrationTest:  seeded graph; getServiceNeighborhood, getCallChain, getServiceEndpoints, findComplexReactiveMethods
+
+6. RESULT
+------------------------------------------------------------------------------
+  Result: PASS

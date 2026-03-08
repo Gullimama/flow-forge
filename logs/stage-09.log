@@ -1,0 +1,111 @@
+==============================================================================
+STAGE 09 — Log Parser (Java Drain Implementation) — VERIFICATION REPORT
+Date: 2026-03-07
+==============================================================================
+
+Stage 9 sign-off requires all of stages 1–9 to pass. Run: make verify
+
+0. CUMULATIVE OUTPUT — STAGES 1–8
+------------------------------------------------------------------------------
+
+---------- STAGE 1 OUTPUT ----------
+  Directory structure:  31/31 PASS
+  Required files:       34/34 PASS
+  Gradle build:         BUILD SUCCESSFUL
+  Unit tests:           21 tests, 0 failures
+  make build / lint:    PASS
+  Result:               PASS
+
+---------- STAGE 2 OUTPUT ----------
+  Required files:       18/18 PASS
+  Gradle build:         BUILD SUCCESSFUL
+  Unit tests:            7 tests, 0 failures
+  Integration tests:     7 tests, 0 failures (PostgreSQL)
+  Result:               PASS
+
+---------- STAGE 3 OUTPUT ----------
+  Required files:       10/10 PASS
+  Gradle build:         BUILD SUCCESSFUL
+  Unit tests:            6 tests, 0 failures (MinIO client, health indicator)
+  Integration tests:     8 tests, 0 failures (MinIO Testcontainers)
+  Result:               PASS
+
+---------- STAGE 4 OUTPUT ----------
+  Required files:       35/35 PASS (services/api, controllers, DTOs, K8s)
+  Gradle build:         BUILD SUCCESSFUL
+  Unit tests:            API 10, common 21 — 31 total, 0 failures
+  Integration tests:     API 3, common 15 — 18 total, 0 failures (PostgreSQL, MinIO)
+  make lint:            PASS
+  Result:               PASS
+
+---------- STAGE 5 OUTPUT ----------
+  Required files:       12/12 PASS (GitHub snapshot ingest)
+  Gradle build:         BUILD SUCCESSFUL
+  Unit tests:            15 tests, 0 failures (ingest)
+  Integration tests:     2 tests, 0 failures (GitHubSnapshotWorker)
+  Result:               PASS
+
+---------- STAGE 6 OUTPUT ----------
+  Required files:       12/12 PASS (Azure Blob ingest, zip extraction)
+  Unit tests:            7 tests, 0 failures (ZipExtractor, BlobIngestionWorker)
+  Result:               PASS
+
+---------- STAGE 7 OUTPUT ----------
+  Required files:       9/9 PASS (OpenSearch client, schemas, K8s)
+  Gradle build:         BUILD SUCCESSFUL
+  OpenSearchClientWrapper, ensureIndex, bulkIndex, search, getDocCount, healthCheck
+  Index schemas: code-artifacts, config-artifacts, runtime-events, anomaly-episodes
+  Integration test:     OpenSearchClientWrapperIntegrationTest (GenericContainer)
+  Result:               PASS
+
+---------- STAGE 8 OUTPUT ----------
+  Module:              libs/code-parser
+  Gradle build:        BUILD SUCCESSFUL
+  Unit tests:          17 tests, 0 failures (visitor, analyzer, chunker, recognizer)
+  CodeParsingService, AstAwareChunker, MicronautCodeVisitor, JavaParser
+  Result:               PASS
+
+1. MODULE & BUILD
+------------------------------------------------------------------------------
+  Module:              libs/log-parser
+  Gradle build:        BUILD SUCCESSFUL
+  Compile Java:        PASS
+  Compile Test Java:   PASS
+
+2. UNIT TESTS
+------------------------------------------------------------------------------
+  DrainParserTest:                 7 tests, 0 failures (clustering, masking, thread-safety)
+  LogLineParserTest:               6 tests, 0 failures (Micronaut, Istio access/envoy, exception)
+  TraceContextExtractorTest:       5 tests, 0 failures (W3C traceparent, B3)
+  Total unit tests:                18 tests, 0 failures
+
+3. IMPLEMENTATION SUMMARY
+------------------------------------------------------------------------------
+  ParsedLogEvent:        eventId, snapshotId, serviceName, timestamp, severity, templateId, template,
+                         rawMessage, parameters, traceId, spanId, threadName, loggerName,
+                         exceptionClass, exceptionMessage, source (APP, ISTIO_ACCESS, ISTIO_ENVOY)
+  DrainParser:           Fixed-depth tree, similarity threshold, preprocess/maskToken (<IP>, <UUID>, <NUM>, <PATH>),
+                         thread-safe (read/write lock), updateTemplate, getClusters
+  LogLineParser:         MICRONAUT_PATTERN, ISTIO_ACCESS_PATTERN, ISTIO_ENVOY_PATTERN,
+                         RawLogLine, parseException (last match = root cause)
+  TraceContextExtractor: W3C traceparent, B3 single header, TraceContext(traceId, spanId)
+  LogParsingService:     parseSnapshotLogs → findLogFiles(*.log), readLines, lineParser.parse,
+                         drainParser.parse, traceExtractor.extract, buildEvent, bulkIndex runtime-events,
+                         putJson evidence/drain-clusters/{snapshotId}.json, inferServiceName
+  LogParserConfig:       DrainParser bean (similarity-threshold, max-depth, max-children)
+
+4. INTEGRATION TEST
+------------------------------------------------------------------------------
+  LogParsingServiceIntegrationTest: @SpringBootTest(TestLogParserApplication), Testcontainers (OpenSearch + MinIO)
+  parseSnapshotLogs_indexesEventsToOpenSearch, parseSnapshotLogs_storesDrainClustersInMinio,
+  parseSnapshotLogs_serviceNameInferredFromDirectory
+  Run with: ./gradlew :libs:log-parser:test (includes integration when Docker available)
+
+5. FIXTURES
+------------------------------------------------------------------------------
+  sample-micronaut.log:     Micronaut-format (INFO, DEBUG, WARN, ERROR, stack trace)
+  sample-istio-access.log:  Istio Envoy access logs (GET/POST, paths, status)
+
+6. RESULT
+------------------------------------------------------------------------------
+  Result: PASS

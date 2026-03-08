@@ -1,0 +1,30 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: neo4j
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: flowforge
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: flowforge-infra
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+  sources:
+    - repoURL: https://helm.neo4j.com/neo4j
+      chart: neo4j
+      targetRevision: 5.25.1
+      helm:
+        valueFiles:
+          - $values/k8s/infrastructure/neo4j/values.yaml
+    - repoURL: https://github.com/tesco/flow-forge.git
+      targetRevision: main
+      ref: values

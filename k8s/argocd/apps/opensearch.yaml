@@ -1,0 +1,30 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: opensearch
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: flowforge
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: flowforge-infra
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+  sources:
+    - repoURL: https://opensearch-project.github.io/helm-charts
+      chart: opensearch
+      targetRevision: 2.28.0
+      helm:
+        valueFiles:
+          - $values/k8s/infrastructure/opensearch/values.yaml
+    - repoURL: https://github.com/tesco/flow-forge.git
+      targetRevision: HEAD
+      ref: values

@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: booking-config
+  namespace: production
+data:
+  application.yml: |
+    server:
+      port: 8080
+  log.level: INFO

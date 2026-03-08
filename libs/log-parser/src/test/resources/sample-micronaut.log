@@ -1,0 +1,10 @@
+2024-01-15T10:30:45.001 INFO [main] io.micronaut.runtime.Micronaut - Startup completed in 1423ms
+2024-01-15T10:30:46.123 INFO [io-executor-1] com.example.BookingService - Processing booking req-001
+2024-01-15T10:30:46.250 DEBUG [io-executor-1] com.example.BookingRepository - Finding booking by ID 12345
+2024-01-15T10:30:46.500 WARN [io-executor-2] com.example.PaymentClient - Retry attempt 1 for payment auth
+2024-01-15T10:30:47.000 ERROR [io-executor-2] com.example.PaymentClient - Payment authorization failed
+java.net.ConnectException: Connection refused
+    at java.base/sun.nio.ch.Net.connect0(Native Method)
+    at com.example.PaymentClient.authorize(PaymentClient.java:54)
+Caused by: java.io.IOException: Network unreachable
+    at java.base/java.net.PlainSocketImpl.connect0(Native Method)
