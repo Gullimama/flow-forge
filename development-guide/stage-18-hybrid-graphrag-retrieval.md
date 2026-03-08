@@ -665,6 +665,10 @@ class HybridRetrievalServiceIntegrationTest {
 
 ## Verification
 
+**Stage 18 sign-off requires all stages 1 through 18 to pass.** Run: `make verify`.
+
+The verification report for stage 18 is `logs/stage-18.log`. It contains **cumulative output for stages 1–18** (Stage 1, then Stage 2, … then Stage 18 output).
+
 | Check | How to verify | Pass criteria |
 |---|---|---|
 | Vector code retrieval | Query "booking endpoint" | Returns code chunks |

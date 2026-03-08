@@ -589,6 +589,10 @@ class LogEmbeddingServiceIntegrationTest {
 
 ## Verification
 
+**Stage 16 sign-off requires all stages 1 through 16 to pass.** Run: `make verify`.
+
+The verification report for stage 16 is `logs/stage-16.log`. It contains **cumulative output for stages 1–16** (Stage 1, then Stage 2, … then Stage 16 output).
+
 | Check | How to verify | Pass criteria |
 |---|---|---|
 | TEI pod running | `kubectl get pods -n flowforge-ml -l app.kubernetes.io/name=tei-log` | Pod STATUS Running, 1/1 Ready |

@@ -832,6 +832,10 @@ torch.onnx.export(TinyNodeClass(), (dummy_x, dummy_ei),
 
 ## Verification
 
+**Stage 24 sign-off requires all stages 1 through 24 to pass.** Run: `make verify`.
+
+The verification report for stage 24 is `logs/stage-24.log`. It contains **cumulative output for stages 1–24** (Stage 1, then Stage 2, … then Stage 24 output).
+
 | Check | How to verify | Pass criteria |
 |---|---|---|
 | Graph data prep | Neo4j with 20 nodes, 30 edges | GraphData with correct dimensions |

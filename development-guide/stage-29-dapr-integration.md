@@ -1153,6 +1153,10 @@ class CloudEventFormatTest {
 
 ## Verification
 
+**Stage 29 sign-off requires all stages 1 through 29 to pass.** Run: `make verify`.
+
+The verification report for stage 29 is `logs/stage-29.log`. It contains **cumulative output for stages 1–29** (Stage 1, then Stage 2, … then Stage 29 output).
+
 | Check | How to verify | Pass criteria |
 |---|---|---|
 | Dapr sidecar | DaprHealthIndicator | Health UP |

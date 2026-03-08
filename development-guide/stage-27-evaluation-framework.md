@@ -950,6 +950,10 @@ class EvaluationThresholdIntegrationTest {
 
 ## Verification
 
+**Stage 27 sign-off requires all stages 1 through 27 to pass.** Run: `make verify`.
+
+The verification report for stage 27 is `logs/stage-27.log`. It contains **cumulative output for stages 1–27** (Stage 1, then Stage 2, … then Stage 27 output).
+
 | Check | How to verify | Pass criteria |
 |---|---|---|
 | Precision computation | Known test set (3/5 relevant) | precision = 0.6 |

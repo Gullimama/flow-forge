@@ -757,6 +757,10 @@ Sample data guidelines:
 
 ## Verification
 
+**Stage 13 sign-off requires all stages 1 through 13 to pass.** Run: `make verify`.
+
+The verification report for stage 13 is `logs/stage-13.log`. It contains **cumulative output for stages 1–13** (Stage 1, then Stage 2, … then Stage 13 output).
+
 | Check | How to verify | Pass criteria |
 |---|---|---|
 | Trace extraction | 100 events with 10 traces | 10 sequences extracted |

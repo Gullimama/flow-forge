@@ -10,7 +10,14 @@ test-unit:          ## Run unit tests only
 	./gradlew test --tests '*Unit*'
 
 test-integration:   ## Run integration tests (requires Docker)
-	./gradlew test --tests '*Integration*'
+	./gradlew integrationTest
+
+verify:             ## Verify all implemented stages (1..N): clean build + integration tests + lint
+	./gradlew clean build integrationTest --rerun-tasks
+	$(MAKE) lint
+
+verify-stages-1-5:  ## Alias for verify (ensures stages 1–5 pass; same as verify while only 5 stages exist)
+	$(MAKE) verify
 
 lint:               ## Run checkstyle (spotbugs skipped: not yet compatible with Java 25)
 	./gradlew checkstyleMain

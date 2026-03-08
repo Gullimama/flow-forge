@@ -667,6 +667,10 @@ Create fixture JSON files under `libs/common/src/test/resources/fixtures/`:
 
 ## Verification
 
+**Stage 1 sign-off requires all stages 1 through 1 to pass.** Run: `make verify`.
+
+The verification report for stage 1 is `logs/stage-01.log`. It contains **cumulative output for stages 1–1** (Stage 1 output only).
+
 | Check | How to verify | Pass criteria |
 |---|---|---|
 | Directory structure exists | `find . -type d` | All listed directories created |

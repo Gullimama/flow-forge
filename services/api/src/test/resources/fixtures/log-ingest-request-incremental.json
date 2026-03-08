@@ -1,0 +1,6 @@
+{
+  "storageAccount": "myaccount",
+  "container": "logs",
+  "prefix": "2024/",
+  "mode": "INCREMENTAL"
+}

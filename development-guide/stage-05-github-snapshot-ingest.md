@@ -510,6 +510,10 @@ sample-repo/
 
 ## Verification
 
+**Stage 5 sign-off requires all stages 1 through 5 to pass.** Run: `make verify` (clean build + integration tests + lint for all implemented stages).
+
+The verification report for stage 5 is `logs/stage-05.log`. It contains **cumulative output for stages 1–5** (Stage 1, then Stage 2, then Stage 3, then Stage 4, then Stage 5 output).
+
 | Check | How to verify | Pass criteria |
 |---|---|---|
 | Clone repo | Unit test with local Git repo (JGit) | Files cloned to temp dir |

@@ -835,6 +835,10 @@ class MlflowIntegrationTest {
 
 ## Verification
 
+**Stage 26 sign-off requires all stages 1 through 26 to pass.** Run: `make verify`.
+
+The verification report for stage 26 is `logs/stage-26.log`. It contains **cumulative output for stages 1–26** (Stage 1, then Stage 2, … then Stage 26 output).
+
 | Check | How to verify | Pass criteria |
 |---|---|---|
 | MLflow reachable | MlflowHealthIndicator | Health UP |

@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flowforge-api
+  namespace: flowforge
+  labels:
+    app: flowforge-api
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: flowforge-api
+  template:
+    metadata:
+      labels:
+        app: flowforge-api
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "flowforge-api"
+        dapr.io/app-port: "8080"
+        dapr.io/metrics-port: "9090"
+        dapr.io/log-as-json: "true"
+    spec:
+      containers:
+        - name: flowforge-api
+          image: flowforgeacr.azurecr.io/flowforge-api:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "aks"
+            - name: JAVA_TOOL_OPTIONS
+              value: "-javaagent:/app/opentelemetry-javaagent.jar"
+          envFrom:
+            - configMapRef:
+                name: flowforge-api-config
+            - secretRef:
+                name: flowforge-api-secrets
+          resources:
+            requests:
+              cpu: "2"
+              memory: 4Gi
+            limits:
+              cpu: "4"
+              memory: 8Gi
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 15
+      nodeSelector:
+        agentpool: cpupool

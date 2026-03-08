@@ -847,6 +847,10 @@ public class BookingController {
 
 ## Verification
 
+**Stage 8 sign-off requires all stages 1 through 8 to pass.** Run: `make verify`.
+
+The verification report for stage 8 is `logs/stage-08.log`. It contains **cumulative output for stages 1–8** (Stage 1, then Stage 2, … then Stage 8 output).
+
 | Check | How to verify | Pass criteria |
 |---|---|---|
 | Parse single file | Parse a Micronaut controller | Extracts class, methods, annotations |

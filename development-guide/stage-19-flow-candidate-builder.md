@@ -601,6 +601,10 @@ class FlowCandidateBuilderIntegrationTest {
 
 ## Verification
 
+**Stage 19 sign-off requires all stages 1 through 19 to pass.** Run: `make verify`.
+
+The verification report for stage 19 is `logs/stage-19.log`. It contains **cumulative output for stages 1–19** (Stage 1, then Stage 2, … then Stage 19 output).
+
 | Check | How to verify | Pass criteria |
 |---|---|---|
 | HTTP flows | Graph with 3-service chain | SYNC_REQUEST flow built |

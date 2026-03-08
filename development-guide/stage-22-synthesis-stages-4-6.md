@@ -702,6 +702,10 @@ WireMock stubs under `libs/synthesis/src/test/resources/wiremock/`:
 
 ## Verification
 
+**Stage 22 sign-off requires all stages 1 through 22 to pass.** Run: `make verify`.
+
+The verification report for stage 22 is `logs/stage-22.log`. It contains **cumulative output for stages 1–22** (Stage 1, then Stage 2, … then Stage 22 output).
+
 | Check | How to verify | Pass criteria |
 |---|---|---|
 | Stage 4 deps | Map 3-service flow | Runtime + build deps listed |

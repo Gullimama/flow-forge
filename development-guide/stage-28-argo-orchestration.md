@@ -1097,6 +1097,10 @@ class ArgoYamlLintTest {
 
 ## Verification
 
+**Stage 28 sign-off requires all stages 1 through 28 to pass.** Run: `make verify`.
+
+The verification report for stage 28 is `logs/stage-28.log`. It contains **cumulative output for stages 1–28** (Stage 1, then Stage 2, … then Stage 28 output).
+
 | Check | How to verify | Pass criteria |
 |---|---|---|
 | YAML valid | `argo lint flowforge-pipeline.yaml` | No errors |

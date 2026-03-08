@@ -705,6 +705,10 @@ Caused by: java.io.IOException: Network unreachable
 
 ## Verification
 
+**Stage 9 sign-off requires all stages 1 through 9 to pass.** Run: `make verify`.
+
+The verification report for stage 9 is `logs/stage-09.log`. It contains **cumulative output for stages 1–9** (Stage 1, then Stage 2, … then Stage 9 output).
+
 | Check | How to verify | Pass criteria |
 |---|---|---|
 | Micronaut log parse | Feed standard Micronaut log line | Timestamp, level, thread, message extracted |

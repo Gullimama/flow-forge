@@ -40,6 +40,7 @@ class FlowForgePropertiesTest {
     void allNestedRecordSectionsPopulated() {
         assertAll(
             () -> assertThat(props.minio()).isNotNull(),
+            () -> assertThat(props.azure()).isNotNull(),
             () -> assertThat(props.opensearch()).isNotNull(),
             () -> assertThat(props.qdrant()).isNotNull(),
             () -> assertThat(props.neo4j()).isNotNull(),

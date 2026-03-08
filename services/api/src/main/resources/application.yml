@@ -1,0 +1,65 @@
+server:
+  port: 8080
+
+spring:
+  threads:
+    virtual:
+      enabled: true
+  datasource:
+    url: ${FLOWFORGE_POSTGRES_URL:jdbc:postgresql://localhost:5432/flowforge}
+    username: ${FLOWFORGE_POSTGRES_USERNAME:flowforge}
+    password: ${FLOWFORGE_POSTGRES_PASSWORD:flowforge}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
+
+flowforge:
+  dispatch:
+    mode: ${FLOWFORGE_DISPATCH_MODE:stub}
+  azure:
+    enabled: ${FLOWFORGE_AZURE_ENABLED:false}
+    connection-string: ${FLOWFORGE_AZURE_CONNECTION_STRING:}
+  minio:
+    enabled: ${FLOWFORGE_MINIO_ENABLED:true}
+    endpoint: ${FLOWFORGE_MINIO_ENDPOINT:http://localhost:9000}
+    access-key: ${FLOWFORGE_MINIO_ACCESS_KEY:minioadmin}
+    secret-key: ${FLOWFORGE_MINIO_SECRET_KEY:minioadmin}
+    secure: false
+  opensearch:
+    hosts:
+      - ${FLOWFORGE_OPENSEARCH_HOST:http://localhost:9200}
+    username: admin
+    password: admin
+    index-prefix: flowforge
+  qdrant:
+    host: localhost
+    port: 6334
+    api-key: ""
+    collection-prefix: flowforge
+  neo4j:
+    uri: bolt://localhost:7687
+    user: neo4j
+    password: password
+    database: flowforge
+  postgres:
+    url: ${FLOWFORGE_POSTGRES_URL:jdbc:postgresql://localhost:5432/flowforge}
+    username: ${FLOWFORGE_POSTGRES_USERNAME:flowforge}
+    password: ${FLOWFORGE_POSTGRES_PASSWORD:flowforge}
+  vllm:
+    base-url: http://localhost:8000
+    api-key: ""
+    model: Qwen/Qwen3-14B
+  tei:
+    code-url: http://localhost:8081
+    log-url: http://localhost:8082
+    reranker-url: http://localhost:8083
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  health:
+    show-details: always

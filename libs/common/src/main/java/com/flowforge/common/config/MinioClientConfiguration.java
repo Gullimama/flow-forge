@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@ConditionalOnProperty(prefix = "flowforge.minio", name = "endpoint")
+@ConditionalOnProperty(prefix = "flowforge.minio", name = "enabled", havingValue = "true", matchIfMissing = false)
 @EnableConfigurationProperties(FlowForgeProperties.class)
 public class MinioClientConfiguration {
 

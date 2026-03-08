@@ -714,6 +714,10 @@ class LlmGenerationServiceIntegrationTest {
 
 ## Verification
 
+**Stage 20 sign-off requires all stages 1 through 20 to pass.** Run: `make verify`.
+
+The verification report for stage 20 is `logs/stage-20.log`. It contains **cumulative output for stages 1–20** (Stage 1, then Stage 2, … then Stage 20 output).
+
 | Check | How to verify | Pass criteria |
 |---|---|---|
 | vLLM pod running | `kubectl get pods -n flowforge-ml -l app.kubernetes.io/name=vllm` | Pod STATUS Running, 1/1 Ready |

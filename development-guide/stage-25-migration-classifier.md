@@ -798,6 +798,10 @@ torch.onnx.export(TinyClassifier(), dummy,
 
 ## Verification
 
+**Stage 25 sign-off requires all stages 1 through 25 to pass.** Run: `make verify`.
+
+The verification report for stage 25 is `logs/stage-25.log`. It contains **cumulative output for stages 1–25** (Stage 1, then Stage 2, … then Stage 25 output).
+
 | Check | How to verify | Pass criteria |
 |---|---|---|
 | Feature extraction | Extract from Micronaut controller | 1088-dim vector (1024 + 64) |

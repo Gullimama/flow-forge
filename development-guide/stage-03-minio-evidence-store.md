@@ -497,6 +497,10 @@ class MinioStorageClientIntegrationTest {
 
 ## Verification
 
+**Stage 3 sign-off requires all stages 1 through 3 to pass.** Run: `make verify`.
+
+The verification report for stage 3 is `logs/stage-03.log`. It contains **cumulative output for stages 1–3** (Stage 1, then Stage 2, then Stage 3 output).
+
 | Check | How to verify | Pass criteria |
 |---|---|---|
 | MinIO pod healthy | `kubectl get pods -n flowforge-infra -l app.kubernetes.io/name=minio` | Pod `Running`, `1/1 Ready` |

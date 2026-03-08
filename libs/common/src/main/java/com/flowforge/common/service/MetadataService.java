@@ -66,6 +66,13 @@ public class MetadataService {
         });
     }
 
+    public void updateSnapshotParent(UUID snapshotId, UUID parentSnapshotId) {
+        snapshotRepo.findById(snapshotId).ifPresent(e -> {
+            e.setParentSnapshot(parentSnapshotId);
+            snapshotRepo.save(e);
+        });
+    }
+
     public UUID createJob(String jobType, Map<String, Object> params) {
         return createJob(jobType, null, params);
     }
@@ -134,6 +141,42 @@ public class MetadataService {
         return blobRecordRepo.existsByEtag(etag);
     }
 
+    public void updateBlobRecordToExtracted(UUID batchId, String blobName, String etag, LogType logType) {
+        blobRecordRepo.findByBatchIdAndBlobNameAndEtag(batchId, blobName, etag).ifPresent(e -> {
+            e.setStatus(BlobRecordStatus.EXTRACTED);
+            e.setLogType(logType);
+            blobRecordRepo.save(e);
+        });
+    }
+
+    public void updateBlobRecordFailed(UUID batchId, String blobName, String etag, String errorMessage) {
+        blobRecordRepo.findByBatchIdAndBlobNameAndEtag(batchId, blobName, etag).ifPresent(e -> {
+            e.setStatus(BlobRecordStatus.FAILED);
+            e.setErrorMessage(errorMessage);
+            blobRecordRepo.save(e);
+        });
+    }
+
+    public Optional<BlobBatchEntity> getLatestCompletedBlobBatch() {
+        return blobBatchRepo.findTopByStatusOrderByCompletedAtDesc(BlobBatchStatus.COMPLETED);
+    }
+
+    public void completeBlobBatch(UUID batchId) {
+        blobBatchRepo.findById(batchId).ifPresent(b -> {
+            b.setStatus(BlobBatchStatus.COMPLETED);
+            b.setCompletedAt(Instant.now());
+            blobBatchRepo.save(b);
+        });
+    }
+
+    public void failBlobBatch(UUID batchId) {
+        blobBatchRepo.findById(batchId).ifPresent(b -> {
+            b.setStatus(BlobBatchStatus.FAILED);
+            b.setCompletedAt(Instant.now());
+            blobBatchRepo.save(b);
+        });
+    }
+
     public UUID createResearchRun(UUID snapshotId, UUID blobBatchId) {
         UUID jobId = createJob("RESEARCH_RUN", snapshotId, Map.of());
         ResearchRunEntity run = new ResearchRunEntity();
@@ -147,6 +190,10 @@ public class MetadataService {
         run.setPipelineConfig(Map.of());
         run.setQualityMetrics(Map.of());
         return researchRunRepo.save(run).getRunId();
+    }
+
+    public Optional<ResearchRunEntity> getResearchRun(UUID runId) {
+        return researchRunRepo.findById(runId);
     }
 
     public Optional<ResearchRunEntity> getLatestResearchRun() {

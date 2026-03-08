@@ -719,6 +719,10 @@ class FlowForgeApiIntegrationTest {
 
 ## Verification
 
+**Stage 4 sign-off requires all stages 1 through 4 to pass.** Run: `make verify`.
+
+The verification report for stage 4 is `logs/stage-04.log`. It contains **cumulative output for stages 1–4** (Stage 1, then Stage 2, then Stage 3, then Stage 4 output).
+
 | Check | How to verify | Pass criteria |
 |---|---|---|
 | App starts | `./gradlew :services:api:bootRun` | Server starts on 8080 |

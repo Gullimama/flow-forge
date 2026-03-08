@@ -818,6 +818,10 @@ spec:
 
 ## Verification
 
+**Stage 10 sign-off requires all stages 1 through 10 to pass.** Run: `make verify`.
+
+The verification report for stage 10 is `logs/stage-10.log`. It contains **cumulative output for stages 1–10** (Stage 1, then Stage 2, … then Stage 10 output).
+
 | Check | How to verify | Pass criteria |
 |---|---|---|
 | Parse Deployment | Feed K8s Deployment YAML | ServiceNode with image, replicas, ports |

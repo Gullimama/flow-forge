@@ -52,6 +52,15 @@ A 30-stage incremental development guide for building FlowForge — an AKS-hoste
 
 > **Local development:** Use `spring.profiles.active=dev,cpu` to activate CPU-only model configurations. TEI containers support `--dtype float32` for CPU execution (slower but functional). For the LLM, use a local Ollama instance or llama.cpp server as an OpenAI-compatible drop-in.
 
+### Stage verification rule
+
+**For stage N sign-off, all stages 1 through N must pass.** Before signing off any stage N, run full verification so that every implemented stage from 1 to N has its unit and integration tests passing (and lint).
+
+- **Command:** `make verify`  
+  Runs `./gradlew clean build integrationTest --rerun-tasks` then `make lint` (all implemented stages).
+- **Convention:** Stage N is only considered verified when `make verify` succeeds and covers at least stages 1..N. As you add later stages, the same `make verify` continues to run tests for all existing modules.
+- **Cumulative verification reports:** The log file for stage N (`logs/stage-N.log`) contains **cumulative output** for stages 1 through N: Stage 1 output, then Stage 2 output, … then Stage N output. So in `logs/stage-01.log` you see only Stage 1; in `logs/stage-02.log` you see Stage 1 then Stage 2; in `logs/stage-05.log` you see Stage 1 through 5. This applies to all stages.
+
 ---
 
 ## Stage Index

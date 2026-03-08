@@ -566,6 +566,10 @@ class CrossEncoderRerankerIntegrationTest {
 
 ## Verification
 
+**Stage 17 sign-off requires all stages 1 through 17 to pass.** Run: `make verify`.
+
+The verification report for stage 17 is `logs/stage-17.log`. It contains **cumulative output for stages 1–17** (Stage 1, then Stage 2, … then Stage 17 output).
+
 | Check | How to verify | Pass criteria |
 |---|---|---|
 | TEI pod running | `kubectl get pods -n flowforge-ml -l app.kubernetes.io/name=tei-reranker` | Pod STATUS Running, 1/1 Ready |

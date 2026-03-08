@@ -788,6 +788,10 @@ Sample data guidelines:
 
 ## Verification
 
+**Stage 11 sign-off requires all stages 1 through 11 to pass.** Run: `make verify`.
+
+The verification report for stage 11 is `logs/stage-11.log`. It contains **cumulative output for stages 1–11** (Stage 1, then Stage 2, … then Stage 11 output).
+
 | Check | How to verify | Pass criteria |
 |---|---|---|
 | Neo4j starts | `kubectl get pods -n flowforge-infra -l app.kubernetes.io/name=neo4j` | Pod Running; ArgoCD app Synced/Healthy |

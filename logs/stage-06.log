@@ -1,0 +1,122 @@
+==============================================================================
+STAGE 06 — Azure Blob Log Ingestion & Zip Extraction — VERIFICATION REPORT
+Date: 2026-03-08
+==============================================================================
+
+Stage 6 sign-off requires all of stages 1–6 to pass. Run: make verify
+
+0. CUMULATIVE OUTPUT — STAGES 1–6
+------------------------------------------------------------------------------
+
+---------- STAGE 1 OUTPUT ----------
+  Directory structure:  31/31 PASS
+  Required files:       34/34 PASS
+  Gradle build:         BUILD SUCCESSFUL
+  Unit tests:           21 tests, 0 failures
+  make build / lint:    PASS
+  Result:               PASS
+
+---------- STAGE 2 OUTPUT ----------
+  Required files:       18/18 PASS
+  Gradle build:         BUILD SUCCESSFUL
+  Unit tests:            7 tests, 0 failures
+  Integration tests:     7 tests, 0 failures (PostgreSQL)
+  Result:               PASS
+
+---------- STAGE 3 OUTPUT ----------
+  Required files:       10/10 PASS
+  Gradle build:         BUILD SUCCESSFUL
+  Unit tests:            6 tests, 0 failures (MinIO client, health indicator)
+  Integration tests:     8 tests, 0 failures (MinIO Testcontainers)
+  Result:               PASS
+
+---------- STAGE 4 OUTPUT ----------
+  Required files:       35/35 PASS (services/api, controllers, DTOs, K8s)
+  Gradle build:         BUILD SUCCESSFUL
+  Unit tests:            API 10, common 21 — 31 total, 0 failures
+  Integration tests:     API 3, common 15 — 18 total, 0 failures (PostgreSQL, MinIO)
+  make lint:            PASS
+  Result:               PASS
+
+---------- STAGE 5 OUTPUT ----------
+  Required files:       12/12 PASS (GitHub snapshot ingest)
+  Gradle build:         BUILD SUCCESSFUL
+  Unit tests:            15 tests, 0 failures (ingest)
+  Integration tests:     2 tests, 0 failures (GitHubSnapshotWorker)
+  Result:               PASS
+
+---------- STAGE 6 OUTPUT ----------
+
+1. REQUIRED FILES CHECK
+------------------------------------------------------------------------------
+ [PASS]  libs/ingest/build.gradle.kts (azure-storage-blob)
+ [PASS]  libs/ingest/src/main/java/com/flowforge/ingest/blob/AzureBlobConfig.java
+ [PASS]  libs/ingest/src/main/java/com/flowforge/ingest/blob/AzureBlobClient.java
+ [PASS]  libs/ingest/src/main/java/com/flowforge/ingest/blob/ZipExtractor.java
+ [PASS]  libs/ingest/src/main/java/com/flowforge/ingest/blob/BlobIngestionConfig.java
+ [PASS]  libs/ingest/src/main/java/com/flowforge/ingest/blob/BatchIngestionResult.java
+ [PASS]  libs/ingest/src/main/java/com/flowforge/ingest/blob/BlobIngestionWorker.java
+ [PASS]  libs/ingest/src/test/java/com/flowforge/ingest/blob/ZipExtractorTest.java
+ [PASS]  libs/ingest/src/test/java/com/flowforge/ingest/blob/BlobIngestionWorkerUnitTest.java
+ [PASS]  libs/common FlowForgeProperties.azure, MetadataService blob batch/record helpers
+ [PASS]  services/api/config/BlobIngestionWorkerConfig.java
+ [PASS]  InProcessJobDispatcher LOG_INGEST → blobIngestionWorker
+
+Result: 12/12 required items present
+
+2. GRADLE BUILD
+------------------------------------------------------------------------------
+Command: ./gradlew clean build
+Result: BUILD SUCCESSFUL
+All modules including libs:ingest and services:api compile and test.
+
+3. UNIT TESTS — libs:ingest (blob package)
+------------------------------------------------------------------------------
+ - ZipExtractorTest ......................  6 tests, 0 failures
+   - extract_standardZip_extractsAllEntries
+   - extractAndClassify_zipFile_classifiesLogTypes
+   - extract_pathTraversal_throwsSecurityException
+   - extractAndClassify_plainTextFile_copiedDirectly
+   - classifyByFilename_appLog_returnsApp
+   - classifyByFilename_istioLog_returnsIstio
+ - BlobIngestionWorkerUnitTest ...........  1 test, 0 failures
+   - executeFull_skipsAlreadyDownloadedBlobs
+
+Total: 7 tests, 0 failures
+
+4. INTEGRATION TESTS
+------------------------------------------------------------------------------
+ No dedicated BlobIngestionWorkerIntegrationTest (Azurite); optional per guide.
+ Existing ingest + API integration tests: PASS
+
+5. LINT
+------------------------------------------------------------------------------
+Command: make lint
+Result: BUILD SUCCESSFUL — checkstyle passed for all modules
+
+6. VERIFICATION TABLE
+------------------------------------------------------------------------------
+| Check                    | Result | Notes                              |
+|--------------------------|--------|------------------------------------|
+| AzureBlobClient          | PASS   | listBlobs(prefix), downloadBlob, getBlobProperties |
+| ZipExtractor             | PASS   | extract (zip), extractAndClassify (.zip/.gz/.tar.gz/plain) |
+| Path traversal           | PASS   | safeResolve throws SecurityException on ../ escape |
+| Zip bomb limits          | PASS   | MAX_ENTRIES, MAX_UNCOMPRESSED_SIZE, MAX_COMPRESSION_RATIO |
+| ClassifiedLogFile        | PASS   | path, logType (APP/ISTIO/UNKNOWN), serviceName, sizeBytes |
+| BlobIngestionWorker      | PASS   | executeFull, executeIncremental (delegates to full) |
+| Idempotency by etag      | PASS   | existsBlobByEtag → skip download                    |
+| MinIO raw-logs layout    | PASS   | raw-logs/<batchId>/<blobName>/archive.zip, extracted/ |
+| PostgreSQL tracking     | PASS   | blob_ingestion_batch, blob_records, updateBlobRecordToExtracted |
+| API wiring              | PASS   | JobContextHolder, BlobIngestionWorkerConfig, LOG_INGEST |
+
+7. SUMMARY
+------------------------------------------------------------------------------
+Stage 06 — Azure Blob Log Ingestion & Zip Extraction: ALL CHECKS PASSED
+
+ - Azure Blob client (optional when flowforge.azure.enabled=false): list, download, getProperties
+ - ZipExtractor: .zip / .gz / .tar.gz extraction with zip-bomb and path-traversal safety
+ - BlobIngestionWorker: full run creates batch, lists blobs, skips by etag, downloads, uploads archive
+   to MinIO, extracts, uploads extracted files, updates blob_records and completes batch
+ - MinIO: raw-logs/<batchId>/<blobName>/archive.zip and .../extracted/<filename>
+ - Unit tests: ZipExtractor (6), BlobIngestionWorker (1); make verify and lint pass
+==============================================================================

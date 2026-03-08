@@ -10,6 +10,9 @@ spring:
     enabled: true
 
 flowforge:
+  azure:
+    enabled: false
+    connection-string: ""
   minio:
     endpoint: http://localhost:9000
     access-key: minioadmin

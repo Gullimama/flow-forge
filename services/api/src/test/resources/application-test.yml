@@ -1,0 +1,23 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/flowforge_test
+    username: flowforge
+    password: flowforge
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
+
+flowforge:
+  dispatch:
+    mode: stub
+  azure:
+    enabled: false
+    connection-string: ""
+  minio:
+    enabled: false
+  postgres:
+    url: jdbc:postgresql://localhost:5432/flowforge_test
+    username: flowforge
+    password: flowforge

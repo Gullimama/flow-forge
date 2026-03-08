@@ -463,6 +463,10 @@ class OpenSearchTestUtils {
 
 ## Verification
 
+**Stage 7 sign-off requires all stages 1 through 7 to pass.** Run: `make verify`.
+
+The verification report for stage 7 is `logs/stage-07.log`. It contains **cumulative output for stages 1–7** (Stage 1, then Stage 2, … then Stage 7 output).
+
 | Check | How to verify | Pass criteria |
 |---|---|---|
 | OpenSearch starts | `kubectl get pods -n flowforge-infra -l app.kubernetes.io/name=opensearch` | All 3 pods Running; ArgoCD app Synced/Healthy |

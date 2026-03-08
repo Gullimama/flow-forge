@@ -5,9 +5,31 @@
 
 Date:      2026-03-07
 
+Stage 3 sign-off requires all stages 1 through 3 to pass. Run: make verify
+
+================================================================================
+CUMULATIVE OUTPUT — STAGES 1–3
+================================================================================
+
+---------- STAGE 1 OUTPUT ----------
+  Directory structure:  31/31 PASS
+  Required files:       34/34 PASS
+  Gradle build:         BUILD SUCCESSFUL
+  Unit tests:            21 tests, 0 failures (FlowForgePropertiesTest, SharedModelsTest, EntityMappingTest, MetadataServiceUnitTest, MinioStorageClientUnitTest, MinioHealthIndicatorTest)
+  make build / lint:    PASS
+  Result:               PASS
+
+---------- STAGE 2 OUTPUT ----------
+  Required files:       18/18 PASS (V1__initial_schema.sql, entities, repositories, MetadataService, k8s postgresql)
+  Gradle build:         BUILD SUCCESSFUL
+  Unit tests:           EntityMappingTest 3, MetadataServiceUnitTest 4 — 7 tests, 0 failures
+  Integration tests:    RepositoryIntegrationTest 4, MetadataServiceIntegrationTest 2, FlowForgePropertiesIntegrationTest 1 — 7 tests, 0 failures (PostgreSQL)
+  Result:               PASS
+
+---------- STAGE 3 OUTPUT ----------
+
 ================================================================================
 CHECK 1: Required Files (10/10)
-================================================================================
 
   [PASS] libs/common/src/main/java/com/flowforge/common/client/MinioStorageClient.java
   [PASS] libs/common/src/main/java/com/flowforge/common/client/MinioObjectInfo.java

@@ -9,6 +9,7 @@ pluginManagement {
 rootProject.name = "flowforge"
 
 include(":libs:common")
+include(":libs:ingest")
 include(":libs:test-fixtures")
 include(":services:api")
 include(":services:orchestrator")

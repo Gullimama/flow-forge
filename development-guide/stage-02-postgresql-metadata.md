@@ -679,6 +679,10 @@ class MetadataServiceIntegrationTest {
 
 ## Verification
 
+**Stage 2 sign-off requires all stages 1 through 2 to pass.** Run: `make verify`.
+
+The verification report for stage 2 is `logs/stage-02.log`. It contains **cumulative output for stages 1–2** (Stage 1 output, then Stage 2 output).
+
 | Check | How to verify | Pass criteria |
 |---|---|---|
 | PostgreSQL pod healthy | `kubectl get pods -n flowforge-infra -l app.kubernetes.io/name=postgresql` | Pod `Running`, `1/1 Ready` |

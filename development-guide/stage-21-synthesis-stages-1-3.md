@@ -732,6 +732,10 @@ Create WireMock stub files under `libs/synthesis/src/test/resources/wiremock/`:
 
 ## Verification
 
+**Stage 21 sign-off requires all stages 1 through 21 to pass.** Run: `make verify`.
+
+The verification report for stage 21 is `logs/stage-21.log`. It contains **cumulative output for stages 1–21** (Stage 1, then Stage 2, … then Stage 21 output).
+
 | Check | How to verify | Pass criteria |
 |---|---|---|
 | Stage 1 output | Analyze simple HTTP flow | FlowAnalysisOutput with purpose + interactions |

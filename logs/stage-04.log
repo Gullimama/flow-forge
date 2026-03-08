@@ -1,0 +1,170 @@
+==============================================================================
+STAGE 04 — FlowForge Control Plane API — VERIFICATION REPORT
+Date: 2026-03-07
+==============================================================================
+
+Stage 4 sign-off requires all stages 1 through 4 to pass. Run: make verify
+
+0. CUMULATIVE OUTPUT — STAGES 1–4
+------------------------------------------------------------------------------
+
+---------- STAGE 1 OUTPUT ----------
+  Directory structure:  31/31 PASS
+  Required files:       34/34 PASS
+  Gradle build:         BUILD SUCCESSFUL
+  Unit tests:           21 tests, 0 failures
+  make build / lint:    PASS
+  Result:               PASS
+
+---------- STAGE 2 OUTPUT ----------
+  Required files:       18/18 PASS
+  Gradle build:         BUILD SUCCESSFUL
+  Unit tests:            7 tests, 0 failures (EntityMappingTest, MetadataServiceUnitTest)
+  Integration tests:     7 tests, 0 failures (RepositoryIntegrationTest, MetadataServiceIntegrationTest, FlowForgePropertiesIntegrationTest — PostgreSQL)
+  Result:               PASS
+
+---------- STAGE 3 OUTPUT ----------
+  Required files:       10/10 PASS (MinioStorageClient, MinioHealthIndicator, MinioClientConfiguration, k8s minio)
+  Gradle build:         BUILD SUCCESSFUL
+  Unit tests:           MinioStorageClientUnitTest 4, MinioHealthIndicatorTest 2 — 6 tests, 0 failures
+  Integration tests:    MinioStorageClientIntegrationTest 8 tests, 0 failures (Testcontainers MinIO)
+  make lint:            PASS
+  Result:               PASS
+
+---------- STAGE 4 OUTPUT ----------
+
+1. REQUIRED FILES CHECK
+------------------------------------------------------------------------------
+ [PASS]  services/api/build.gradle.kts
+ [PASS]  services/api/Dockerfile
+ [PASS]  services/api/src/main/java/com/flowforge/api/FlowForgeApiApplication.java
+ [PASS]  services/api/src/main/resources/application.yml
+ [PASS]  services/api/src/main/java/com/flowforge/api/controller/SnapshotController.java
+ [PASS]  services/api/src/main/java/com/flowforge/api/controller/LogIngestionController.java
+ [PASS]  services/api/src/main/java/com/flowforge/api/controller/ResearchController.java
+ [PASS]  services/api/src/main/java/com/flowforge/api/controller/JobController.java
+ [PASS]  services/api/src/main/java/com/flowforge/api/dto/SnapshotRequest.java
+ [PASS]  services/api/src/main/java/com/flowforge/api/dto/LogIngestRequest.java
+ [PASS]  services/api/src/main/java/com/flowforge/api/dto/ReindexRequest.java
+ [PASS]  services/api/src/main/java/com/flowforge/api/dto/ResearchRunRequest.java
+ [PASS]  services/api/src/main/java/com/flowforge/api/dto/JobResponse.java
+ [PASS]  services/api/src/main/java/com/flowforge/api/dto/JobStatusResponse.java
+ [PASS]  services/api/src/main/java/com/flowforge/api/dto/ResearchRunResponse.java
+ [PASS]  services/api/src/main/java/com/flowforge/api/service/JobDispatcher.java
+ [PASS]  services/api/src/main/java/com/flowforge/api/service/StubJobDispatcher.java
+ [PASS]  services/api/src/main/java/com/flowforge/api/service/InProcessJobDispatcher.java
+ [PASS]  services/api/src/test/java/com/flowforge/api/controller/SnapshotControllerTest.java
+ [PASS]  services/api/src/test/java/com/flowforge/api/controller/LogIngestionControllerTest.java
+ [PASS]  services/api/src/test/java/com/flowforge/api/controller/JobControllerTest.java
+ [PASS]  services/api/src/test/java/com/flowforge/api/service/InProcessJobDispatcherTest.java
+ [PASS]  services/api/src/test/java/com/flowforge/api/FlowForgeApiIntegrationTest.java
+ [PASS]  services/api/src/test/resources/application-test.yml
+ [PASS]  services/api/src/test/resources/fixtures/snapshot-request-valid.json
+ [PASS]  services/api/src/test/resources/fixtures/snapshot-request-invalid.json
+ [PASS]  services/api/src/test/resources/fixtures/log-ingest-request-full.json
+ [PASS]  services/api/src/test/resources/fixtures/log-ingest-request-incremental.json
+ [PASS]  services/api/src/test/resources/fixtures/research-run-request.json
+ [PASS]  k8s/argocd/apps/flowforge-api.yaml
+ [PASS]  k8s/app/flowforge-api/deployment.yaml
+ [PASS]  k8s/app/flowforge-api/service.yaml
+ [PASS]  k8s/app/flowforge-api/ingress.yaml
+ [PASS]  k8s/app/flowforge-api/hpa.yaml
+ [PASS]  k8s/app/flowforge-api/kustomization.yaml
+
+Result: 35/35 required files present
+
+2. GRADLE BUILD
+------------------------------------------------------------------------------
+Command: ./gradlew clean build
+Result: BUILD SUCCESSFUL (35 tasks executed)
+All modules compiled, all unit tests passed, checkstyle passed.
+
+3. UNIT TESTS — services:api:test
+------------------------------------------------------------------------------
+ - JobControllerTest ................ 2 tests, 0 failures, 0 errors
+ - LogIngestionControllerTest ....... 2 tests, 0 failures, 0 errors
+ - SnapshotControllerTest ........... 3 tests, 0 failures, 0 errors
+ - InProcessJobDispatcherTest ....... 3 tests, 0 failures, 0 errors
+
+Total: 10 tests, 0 failures, 0 skipped
+
+4. UNIT TESTS — libs:common:test (regression)
+------------------------------------------------------------------------------
+ - MinioStorageClientUnitTest ....... 4 tests, 0 failures, 0 errors
+ - FlowForgePropertiesTest .......... 3 tests, 0 failures, 0 errors
+ - EntityMappingTest ................ 3 tests, 0 failures, 0 errors
+ - MinioHealthIndicatorTest ......... 2 tests, 0 failures, 0 errors
+ - SharedModelsTest ................. 5 tests, 0 failures, 0 errors
+ - MetadataServiceUnitTest .......... 4 tests, 0 failures, 0 errors
+
+Total: 21 tests, 0 failures, 0 skipped
+
+5. INTEGRATION TESTS — services:api:integrationTest
+------------------------------------------------------------------------------
+ - FlowForgeApiIntegrationTest ...... 3 tests, 0 failures, 0 errors
+   - healthEndpointReturnsUp ........ PASS
+   - snapshotEndToEndFlow ........... PASS
+   - inputValidationReturns400 ...... PASS
+
+Total: 3 tests, 0 failures, 0 skipped
+(Testcontainers PostgreSQL 16-alpine)
+
+6. INTEGRATION TESTS — libs:common:integrationTest (regression)
+------------------------------------------------------------------------------
+ - MinioStorageClientIntegrationTest .. 8 tests, 0 failures, 0 errors
+ - FlowForgePropertiesIntegrationTest . 1 test,  0 failures, 0 errors
+ - RepositoryIntegrationTest .......... 4 tests, 0 failures, 0 errors
+ - MetadataServiceIntegrationTest ..... 2 tests, 0 failures, 0 errors
+
+Total: 15 tests, 0 failures, 0 skipped
+(Testcontainers PostgreSQL 16-alpine, MinIO)
+
+7. LINT — make lint
+------------------------------------------------------------------------------
+Command: make lint (./gradlew checkstyleMain)
+Result: BUILD SUCCESSFUL — checkstyle passed for all modules
+
+8. VERIFICATION TABLE
+------------------------------------------------------------------------------
+| Check                        | Result | Notes                              |
+|------------------------------|--------|------------------------------------|
+| FlowForgeApiApplication      | PASS   | @SpringBootApplication + JPA + Flyway |
+| application.yml               | PASS   | Virtual threads, DB, Actuator      |
+| SnapshotController            | PASS   | POST /master (202), POST /refresh  |
+| LogIngestionController        | PASS   | POST /ingest (202), POST /reindex  |
+| ResearchController            | PASS   | POST /run, GET /latest, GET /{id}  |
+| JobController                 | PASS   | GET /{jobId} with 200/404          |
+| Request/Response DTOs         | PASS   | 7 Java records with validation     |
+| JobDispatcher interface       | PASS   | Strategy pattern                   |
+| StubJobDispatcher             | PASS   | @ConditionalOnProperty stub mode   |
+| InProcessJobDispatcher        | PASS   | Virtual thread dispatch + status   |
+| Dockerfile                    | PASS   | Based on flowforge-base            |
+| ArgoCD Application            | PASS   | sync-wave: 7                       |
+| K8s Deployment                | PASS   | 2 replicas, Dapr sidecar, probes   |
+| K8s Service                   | PASS   | ClusterIP:8080                     |
+| K8s Ingress                   | PASS   | nginx, host-based routing          |
+| K8s HPA                       | PASS   | min:2, max:6, CPU 70%              |
+| K8s Kustomization             | PASS   | All resources included             |
+| Input validation (400)        | PASS   | Blank repoUrl, null mode           |
+| Health endpoint               | PASS   | /actuator/health returns 200       |
+| API unit tests                | PASS   | 10 tests, 0 failures              |
+| API integration tests         | PASS   | 3 tests, 0 failures               |
+| Common unit tests (regress)   | PASS   | 21 tests, 0 failures              |
+| Common integ tests (regress)  | PASS   | 15 tests, 0 failures              |
+| Checkstyle                    | PASS   | No violations                      |
+
+9. SUMMARY
+------------------------------------------------------------------------------
+Stage 04 — FlowForge Control Plane API: ALL CHECKS PASSED
+
+ - 35 required files created
+ - Full Gradle clean build: SUCCESS
+ - API unit tests: 10 passed, 0 failed
+ - API integration tests: 3 passed, 0 failed
+ - Regression — common unit tests: 21 passed, 0 failed
+ - Regression — common integration tests: 15 passed, 0 failed
+ - Checkstyle lint: PASS (all modules)
+ - REST API: Snapshots, Logs, Research, Jobs endpoints operational
+ - Job dispatch: Stub + InProcess dispatchers with strategy pattern
+ - K8s manifests: Deployment, Service, Ingress, HPA, ArgoCD app
+==============================================================================

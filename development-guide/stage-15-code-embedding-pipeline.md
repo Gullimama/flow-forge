@@ -710,6 +710,10 @@ Sample data guidelines:
 
 ## Verification
 
+**Stage 15 sign-off requires all stages 1 through 15 to pass.** Run: `make verify`.
+
+The verification report for stage 15 is `logs/stage-15.log`. It contains **cumulative output for stages 1–15** (Stage 1, then Stage 2, … then Stage 15 output).
+
 | Check | How to verify | Pass criteria |
 |---|---|---|
 | TEI pod running | `kubectl get pods -n flowforge-ml -l app.kubernetes.io/name=tei-code` | Pod STATUS Running, 1/1 Ready |

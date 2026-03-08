@@ -17,6 +17,7 @@ resilience4j = "2.2.0"
 micrometer = "1.15.0"
 jackson = "2.18.3"
 fabric8 = "7.0.1"
+jgit = "7.1.0.202411261347-r"
 
 [libraries]
 spring-boot-starter-web = { module = "org.springframework.boot:spring-boot-starter-web" }
@@ -43,6 +44,8 @@ testcontainers-junit5 = { module = "org.testcontainers:junit-jupiter", version.r
 testcontainers-postgresql = { module = "org.testcontainers:postgresql", version.ref = "testcontainers" }
 testcontainers-neo4j = { module = "org.testcontainers:neo4j", version.ref = "testcontainers" }
 testcontainers-minio = { module = "org.testcontainers:minio", version.ref = "testcontainers" }
+jgit = { module = "org.eclipse.jgit:org.eclipse.jgit", version.ref = "jgit" }
+azure-storage-blob = { module = "com.azure:azure-storage-blob", version = "12.29.0" }
 
 [plugins]
 spring-boot = { id = "org.springframework.boot", version.ref = "spring-boot" }

@@ -1,0 +1,114 @@
+==============================================================================
+STAGE 05 — GitHub Snapshot Ingestion — VERIFICATION REPORT
+Date: 2026-03-07
+==============================================================================
+
+Stage 5 sign-off requires all of stages 1–5 to pass. Run: make verify
+
+0. CUMULATIVE OUTPUT — STAGES 1–5
+------------------------------------------------------------------------------
+
+---------- STAGE 1 OUTPUT ----------
+  Directory structure:  31/31 PASS
+  Required files:       34/34 PASS
+  Gradle build:         BUILD SUCCESSFUL
+  Unit tests:           21 tests, 0 failures
+  make build / lint:    PASS
+  Result:               PASS
+
+---------- STAGE 2 OUTPUT ----------
+  Required files:       18/18 PASS
+  Gradle build:         BUILD SUCCESSFUL
+  Unit tests:            7 tests, 0 failures
+  Integration tests:     7 tests, 0 failures (PostgreSQL)
+  Result:               PASS
+
+---------- STAGE 3 OUTPUT ----------
+  Required files:       10/10 PASS
+  Gradle build:         BUILD SUCCESSFUL
+  Unit tests:            6 tests, 0 failures (MinIO client, health indicator)
+  Integration tests:     8 tests, 0 failures (MinIO Testcontainers)
+  Result:               PASS
+
+---------- STAGE 4 OUTPUT ----------
+  Required files:       35/35 PASS (services/api, controllers, DTOs, K8s)
+  Gradle build:         BUILD SUCCESSFUL
+  Unit tests:            API 10, common 21 — 31 total, 0 failures
+  Integration tests:     API 3, common 15 — 18 total, 0 failures (PostgreSQL, MinIO)
+  make lint:            PASS
+  Result:               PASS
+
+---------- STAGE 5 OUTPUT ----------
+
+1. REQUIRED FILES CHECK
+------------------------------------------------------------------------------
+ [PASS]  libs/ingest/build.gradle.kts
+ [PASS]  libs/ingest/src/main/java/com/flowforge/ingest/github/GitHubSnapshotClient.java
+ [PASS]  libs/ingest/src/main/java/com/flowforge/ingest/github/FileClassifier.java
+ [PASS]  libs/ingest/src/main/java/com/flowforge/ingest/github/GitHubSnapshotWorker.java
+ [PASS]  libs/ingest/src/main/java/com/flowforge/ingest/github/SnapshotResult.java
+ [PASS]  libs/ingest/src/test/java/com/flowforge/ingest/github/FileClassifierTest.java
+ [PASS]  libs/ingest/src/test/java/com/flowforge/ingest/github/GitHubSnapshotClientTest.java
+ [PASS]  libs/ingest/src/test/java/com/flowforge/ingest/github/GitHubSnapshotWorkerUnitTest.java
+ [PASS]  libs/ingest/src/test/java/com/flowforge/ingest/github/GitHubSnapshotWorkerIntegrationTest.java
+ [PASS]  libs/ingest/src/test/java/com/flowforge/ingest/IngestTestApplication.java
+ [PASS]  libs/ingest/src/test/resources/application-test.yml
+ [PASS]  services/api dependency on libs:ingest + JobContextHolder + SnapshotWorkerConfig
+
+Result: 12/12 required items present
+
+2. GRADLE BUILD
+------------------------------------------------------------------------------
+Command: ./gradlew clean build
+Result: BUILD SUCCESSFUL (43 tasks)
+All modules including libs:ingest and services:api compile and test.
+
+3. UNIT TESTS — libs:ingest
+------------------------------------------------------------------------------
+ - FileClassifierTest ................ 10 tests, 0 failures
+ - GitHubSnapshotClientTest ..........  3 tests, 0 failures
+ - GitHubSnapshotWorkerUnitTest ......  2 tests, 0 failures
+
+Total: 15 tests, 0 failures
+
+4. INTEGRATION TESTS — libs:ingest
+------------------------------------------------------------------------------
+ - GitHubSnapshotWorkerIntegrationTest  2 tests, 0 failures
+   - baselineSnapshotEndToEnd ........ PASS (clone → MinIO → PostgreSQL)
+   - refreshSnapshotOnlyUploadsChangedFiles .. PASS (baseline → change → refresh)
+
+Total: 2 tests, 0 failures
+(Testcontainers: PostgreSQL 16-alpine, MinIO)
+
+5. LINT
+------------------------------------------------------------------------------
+Command: make lint
+Result: BUILD SUCCESSFUL — checkstyle passed for all modules
+
+6. VERIFICATION TABLE
+------------------------------------------------------------------------------
+| Check                    | Result | Notes                              |
+|--------------------------|--------|------------------------------------|
+| GitHubSnapshotClient     | PASS   | JGit clone, getHeadCommitSha, getChangedFiles |
+| FileClassifier           | PASS   | ClassifiedFile, FileType enum, service detection |
+| SnapshotResult           | PASS   | Record with counts and services    |
+| GitHubSnapshotWorker     | PASS   | executeBaseline, executeRefresh   |
+| MinIO raw-git layout     | PASS   | source/<service>/<path>, manifests/ |
+| PostgreSQL tracking      | PASS   | snapshots + parse_artifacts        |
+| Baseline snapshot        | PASS   | Full clone, classify, upload      |
+| Refresh snapshot         | PASS   | Diff, clone, upload changed only  |
+| API wiring               | PASS   | JobContextHolder, snapshotWorker bean |
+| InProcessJobDispatcher   | PASS   | Sets context for SNAPSHOT/SNAPSHOT_REFRESH |
+
+7. SUMMARY
+------------------------------------------------------------------------------
+Stage 05 — GitHub Snapshot Ingestion: ALL CHECKS PASSED
+
+ - libs:ingest module with JGit, FileClassifier, GitHubSnapshotWorker
+ - Baseline: clone repo → classify files → upload to raw-git/<snapshot_id>/ → track in PostgreSQL
+ - Refresh: diff from latest snapshot → upload only changed files → new snapshot with parent
+ - File types: JAVA_SOURCE, YAML_CONFIG, K8S_MANIFEST, ISTIO_MANIFEST, HELM_CHART, DOCKERFILE, etc.
+ - Service name detection from services/<name>/ and libs/<name>/
+ - API in-process dispatch: JobContextHolder + SnapshotWorkerConfig bean for SNAPSHOT/SNAPSHOT_REFRESH
+ - Unit tests: 15 passed; integration tests: 2 passed (PostgreSQL + MinIO)
+==============================================================================

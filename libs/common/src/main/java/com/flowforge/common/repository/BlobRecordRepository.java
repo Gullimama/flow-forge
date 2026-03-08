@@ -5,10 +5,12 @@ import com.flowforge.common.entity.BlobRecordStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface BlobRecordRepository extends JpaRepository<BlobRecordEntity, Long> {
 
     List<BlobRecordEntity> findByBatchIdAndStatus(UUID batchId, BlobRecordStatus status);
     boolean existsByEtag(String etag);
+    Optional<BlobRecordEntity> findByBatchIdAndBlobNameAndEtag(UUID batchId, String blobName, String etag);
 }

@@ -5,6 +5,24 @@
 
 Date:      2026-03-07
 
+Stage 2 sign-off requires all stages 1 through 2 to pass. Run: make verify
+
+================================================================================
+CUMULATIVE OUTPUT — STAGES 1–2
+================================================================================
+
+---------- STAGE 1 OUTPUT ----------
+  Directory structure:  31/31 PASS
+  Required files:       34/34 PASS (settings.gradle.kts, build.gradle.kts, libs/common, docker, k8s, Makefile, .env.example, etc.)
+  Gradle build:         ./gradlew clean build — BUILD SUCCESSFUL
+  Unit tests:           FlowForgePropertiesTest 3, SharedModelsTest 5, EntityMappingTest 3, MetadataServiceUnitTest 4, MinioStorageClientUnitTest 4, MinioHealthIndicatorTest 2 — Total: 21 tests, 0 failures
+  Integration tests:    (none for stage 01)
+  make build / lint:    PASS
+  Docker base image:    built successfully
+  Result:               PASS
+
+---------- STAGE 2 OUTPUT ----------
+
 ================================================================================
 CHECK 1: Required Files (18/18)
 ================================================================================
