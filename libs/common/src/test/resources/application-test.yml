@@ -46,3 +46,7 @@ flowforge:
     code-url: http://localhost:8081
     log-url: http://localhost:8082
     reranker-url: http://localhost:8083
+  gnn:
+    link-prediction-model-path: models/gnn_link_pred.onnx
+    node-classification-model-path: models/gnn_node_class.onnx
+    classifier-model-path: models/classifier.onnx

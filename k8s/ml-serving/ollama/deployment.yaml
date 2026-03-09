@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ollama
+  namespace: flowforge-ml
+  labels:
+    app.kubernetes.io/name: ollama
+    app.kubernetes.io/component: llm-serving
+    app.kubernetes.io/part-of: flowforge
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: ollama
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: ollama
+        app.kubernetes.io/component: llm-serving
+    spec:
+      containers:
+        - name: ollama
+          image: ollama/ollama:latest
+          args: ["serve"]
+          ports:
+            - containerPort: 11434
+              name: http
+              protocol: TCP
+          env:
+            - name: OLLAMA_KEEP_ALIVE
+              value: "1h"
+          resources:
+            requests:
+              cpu: "1"
+              memory: 4Gi
+            limits:
+              cpu: "2"
+              memory: 8Gi
+

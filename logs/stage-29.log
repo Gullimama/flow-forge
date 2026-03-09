@@ -1,0 +1,92 @@
+==============================================================================
+STAGE 29 — Dapr Integration (Java SDK) — VERIFICATION REPORT
+Date: 2026-03-07
+==============================================================================
+
+Stage 29 sign-off requires all of stages 1–29 to pass. Run: make verify
+
+0. CUMULATIVE OUTPUT — STAGES 1–28
+------------------------------------------------------------------------------
+
+---------- STAGES 1–27 ----------
+  (See stage-27.log, stage-28.log for full output.)
+  Result:               PASS
+
+---------- STAGE 28 OUTPUT ----------
+  Argo Workflows Orchestration
+  Result:               PASS
+
+1. MODULE & BUILD
+------------------------------------------------------------------------------
+  Module:              libs/dapr
+  Gradle build:        BUILD SUCCESSFUL
+  Compile Java:        PASS
+  Compile Test Java:   PASS
+  Dependencies:        libs:common, spring-boot-starter-web, spring-boot-starter-actuator,
+                       jackson-databind, dapr-sdk
+  test:                excludes @Tag("integration")
+
+2. DAPR CONFIGURATION
+------------------------------------------------------------------------------
+  DaprProperties:      @ConfigurationProperties(prefix = "flowforge.dapr"):
+                       sidecarHost, sidecarHttpPort, sidecarGrpcPort, pubsubName,
+                       stateStoreName, secretStoreName, timeout; defaults:
+                       localhost:3500/50001, pubsub=flowforge-pubsub, state=flowforge-state,
+                       secrets=flowforge-secrets, timeout=30s.
+  DaprClientConfig:    @Configuration + @EnableConfigurationProperties(DaprProperties);
+                       sets dapr.sidecar.ip, dapr.http.port, dapr.grpc.port system properties
+                       and creates DaprClient via DaprClientBuilder.
+
+3. SERVICE INVOCATION, PUB/SUB, STATE, SECRETS
+------------------------------------------------------------------------------
+  DaprServiceInvoker:  @Service wrapper over DaprClient.invokeMethod:
+                       - invoke(appId, method, request, responseType) uses HttpExtension.POST,
+                         blocks with 30s timeout, records flowforge.dapr.invoke.latency by appId/method,
+                         increments success/error counters and throws DaprInvocationException on failure.
+                       - invokeAsync(appId, method, request) fire-and-forget with log callbacks.
+  DaprEventPublisher:  @Service; publish(topic, PipelineEvent) uses DaprClient.publishEvent with
+                       pubsubName from DaprProperties, metadata (content-type, cloudevent.type, source),
+                       blocks with timeout; increments flowforge.dapr.pubsub.published / .error.
+  DaprEventSubscriber: @RestController; exposes:
+                       - GET /dapr/subscribe → DaprSubscription list for topics
+                         pipeline.stage.completed, pipeline.stage.failed, pipeline.snapshot.ready.
+                       - POST /api/events/stage-completed|stage-failed|snapshot-ready endpoints that
+                         accept CloudEvent<PipelineEvent.*> and dispatch to PipelineEventHandler beans.
+  PipelineEvent:       sealed interface with StageCompletedEvent(snapshotId,stage,duration,metadata),
+                       StageFailedEvent(snapshotId,stage,error,attempt), SnapshotReadyEvent(snapshotId,repoUrls,createdAt).
+  DaprStateService:    @Service; thin wrapper over DaprClient state APIs:
+                       saveState(key,value[,etag]), getState(key,type)→Optional, deleteState, saveBulkState(map).
+  DaprSecretService:   @Service; wraps DaprClient.getSecret/getBulkSecret to return single/multiple secrets.
+  PipelineEventHandler: interface with default no-op hooks for the three event types (extension point for consumers).
+
+4. SPRING BOOT DAPR SECRET INTEGRATION
+------------------------------------------------------------------------------
+  DaprSecretPostProcessor: EnvironmentPostProcessor registered via
+  META-INF/spring/org.springframework.boot.env.EnvironmentPostProcessor.imports.
+  - Activated only when profile "dapr" is present.
+  - Uses a temporary DaprClient to fetch selected secrets from secret store
+    (flowforge.dapr.secret-store-name, default flowforge-secrets).
+  - Maps secrets postgres-password, minio-secret-key, neo4j-password into Spring properties
+    spring.datasource.password, flowforge.minio.secret-key, flowforge.neo4j.password,
+    via a high-priority "daprSecrets" property source, with graceful fallback when secrets
+    are unavailable.
+
+5. K8S DAPR COMPONENTS & ARGOCD APP
+------------------------------------------------------------------------------
+  k8s/dapr/pubsub.yaml:      Component flowforge-pubsub (pubsub.redis) pointing to Redis in flowforge-infra.
+  k8s/dapr/statestore.yaml:  Component flowforge-state (state.redis) with actorStateStore=true.
+  k8s/dapr/secretstore.yaml: Component flowforge-secrets (secretstores.azure.keyvault) for Key Vault flowforge-kv.
+  k8s/argocd/apps/dapr.yaml: ArgoCD Application using dapr Helm chart + k8s/infrastructure/dapr/values.yaml,
+                             deploys Dapr control plane into dapr-system.
+  k8s/infrastructure/dapr/values.yaml: Helm values for Dapr controller/sidecar resources and telemetry.
+
+6. TESTS
+------------------------------------------------------------------------------
+  DaprServiceInvokerTest: verifies successful invoke returns response; exceptions from DaprClient
+                          are wrapped in DaprInvocationException.
+  DaprStateServiceTest:   verifies getState wraps Dapr State into Optional and uses configured state store.
+
+7. RESULT
+------------------------------------------------------------------------------
+  Result: PASS
+

@@ -1,0 +1,56 @@
+==============================================================================
+STAGE 25 — Migration Pattern Classifier (DJL) — VERIFICATION REPORT
+Date: 2026-03-07
+==============================================================================
+
+Stage 25 sign-off requires all of stages 1–25 to pass. Run: make verify
+
+0. CUMULATIVE OUTPUT — STAGES 1–24
+------------------------------------------------------------------------------
+
+---------- STAGES 1–23 ----------
+  (See stage-23.log, stage-24.log for full output.)
+  Result:               PASS
+
+---------- STAGE 24 OUTPUT ----------
+  GNN Module (DJL + ONNX Runtime)
+  Result:               PASS
+
+1. MODULE & BUILD
+------------------------------------------------------------------------------
+  Module:              libs/classifier
+  Gradle build:        BUILD SUCCESSFUL
+  Compile Java:        PASS
+  Compile Test Java:   PASS
+  Dependencies:        libs:common, libs:code-parser, libs:embedding, javaparser-core, spring-ai-openai, djl-api, djl-onnxruntime, spring-boot-starter-actuator
+  test:                excludes @Tag("integration")
+
+2. CONFIGURATION & DATA MODEL
+------------------------------------------------------------------------------
+  FlowForgeProperties:  GnnProperties extended with classifierModelPath (third field).
+  application-test.yml: flowforge.gnn.classifier-model-path: models/classifier.onnx
+  MigrationClassification: Sealed interface — ReactiveComplexityClass(classFqn, difficulty, confidence, reasons), FrameworkCouplingClass, DataAccessPatternClass; enums MigrationDifficulty (TRIVIAL,LOW,MEDIUM,HIGH,VERY_HIGH), CouplingLevel, DataAccessPattern.
+  ClassificationResult:  classifications, byDifficulty (Map<MigrationDifficulty, Long>).
+
+3. IMPLEMENTATION SUMMARY
+------------------------------------------------------------------------------
+  MigrationFeatureExtractor:  @Component; injects @Qualifier("codeEmbeddingModel") EmbeddingModel. extractFeatures(ParsedClass) → 1088-dim: 1024 embedding + 64 handcrafted (reactive ops, framework annotations, injected fields, method count, reactive return flag, HTTP endpoints, Kafka flag, interfaces, LOC, max reactive complexity).
+  MigrationClassifier:        @Service @ConditionalOnBean(codeEmbeddingModel). Loads ONNX from props.gnn().classifierModelPath() when set; else classifierModel=null, fallback only. classifyReactiveComplexity(ParsedClass) — timer flowforge.classifier.reactive.latency; ONNX inference argmax → ReactiveComplexityClass; on exception or null model uses fallbackClassification. Fallback: max method ReactiveComplexity → NONE→TRIVIAL, LINEAR→LOW, BRANCHING→MEDIUM, COMPLEX→HIGH; confidence 0.5. Implements AutoCloseable.
+  MigrationClassificationService: @Service @ConditionalOnBean(MigrationClassifier). classifySnapshot(UUID, List<ParsedClass>) — classify each, group by difficulty, minio.putJson evidence/classification/{snapshotId}.json; counters flowforge.classification.total, flowforge.classification.difficulty (tag level).
+  TrainingDataGenerator:       @Component @ConditionalOnBean(JavaParser). generate(Path labelledDataPath, Path outputPath) — read JSONL (source_path, difficulty, source), parse with JavaParser + MicronautCodeVisitorBridge, extract features, write JSON with "features" (float[][]) and "labels" (int[]).
+
+4. UNIT TESTS
+------------------------------------------------------------------------------
+  MigrationFeatureExtractorTest: extractFeatures_returns1088DimVector; extractFeatures_countsReactiveOperators; extractFeatures_countsFrameworkAnnotations; extractFeatures_detectsReactiveReturnTypes; extractFeatures_detectsKafkaAnnotations; extractFeatures_computesMaxReactiveComplexity; extractFeatures_concatenatesEmbeddingAndHandcrafted. All passing.
+  MigrationClassifierTest:      classifyReactiveComplexity_returnsCorrectDifficulty; classifyReactiveComplexity_fallsBackToRulesOnModelFailure; fallbackClassification_mapsReactiveComplexityToDifficulty; close_releasesModel. All passing.
+  MigrationClassificationServiceTest: classifySnapshot_classifiesAllClasses; classifySnapshot_groupsByDifficulty; classifySnapshot_storesResultsInMinio. All passing.
+  TrainingDataGeneratorTest:     generate_producesCorrectNumberOfSamples (JSONL → JSON features/labels). All passing.
+  TestFixtures:                 simplePojo, micronautController, kafkaListenerClass, reactiveServiceWith(String...), classWithAnnotations(String...), classWithReactiveReturnTypes, classWithMixedMethods(ReactiveComplexity...), classWithMaxReactiveComplexity(ReactiveComplexity), classificationResult(MigrationDifficulty), classifierOutput(NDManager, float[]).
+
+5. SCRIPTS
+------------------------------------------------------------------------------
+  tools/train_classifier.py:     Train GradientBoostingClassifier on JSON or .npz (features, labels), export ONNX; --data, --output, --n-estimators, --cv. Writes _labels.json with label names and optional cv_accuracy.
+
+6. RESULT
+------------------------------------------------------------------------------
+  Result: PASS

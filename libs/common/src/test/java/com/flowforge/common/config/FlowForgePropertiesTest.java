@@ -46,7 +46,8 @@ class FlowForgePropertiesTest {
             () -> assertThat(props.neo4j()).isNotNull(),
             () -> assertThat(props.postgres()).isNotNull(),
             () -> assertThat(props.vllm()).isNotNull(),
-            () -> assertThat(props.tei()).isNotNull()
+            () -> assertThat(props.tei()).isNotNull(),
+            () -> assertThat(props.gnn()).isNotNull()
         );
     }
 }

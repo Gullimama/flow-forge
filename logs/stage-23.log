@@ -1,0 +1,60 @@
+==============================================================================
+STAGE 23 — Output Publisher (FreeMarker Templates) — VERIFICATION REPORT
+Date: 2026-03-07
+==============================================================================
+
+Stage 23 sign-off requires all of stages 1–23 to pass. Run: make verify
+
+0. CUMULATIVE OUTPUT — STAGES 1–22
+------------------------------------------------------------------------------
+
+---------- STAGES 1–21 ----------
+  (See stage-21.log, stage-22.log for full output.)
+  Result:               PASS
+
+---------- STAGE 22 OUTPUT ----------
+  Synthesis Stages 4–6 (Dependency Mapping, Migration Plan, Final Narrative)
+  Result:               PASS
+
+1. MODULE & BUILD
+------------------------------------------------------------------------------
+  Module:              libs/publisher
+  Gradle build:        BUILD SUCCESSFUL
+  Compile Java:        PASS
+  Compile Test Java:   PASS
+  Dependencies:        libs:common, libs:synthesis, freemarker, spring-boot-starter-actuator
+  test:                excludes @Tag("integration")
+
+2. DOCUMENT MODEL
+------------------------------------------------------------------------------
+  ResearchDocument:    title, generatedAt, snapshotId, executiveSummary, flowSections, riskMatrix, roadmap, appendices, metadata
+  ExecutiveSummary:    overview, totalFlows, totalServices, criticalRisks, highRisks, topFindings, recommendedApproach
+  FlowSection:         flowName, anchor, analysis, codeExplanation, riskAssessment, dependencyMapping, migrationPlan, narrative
+  RiskMatrix:          entries, bySeverity, byCategory
+  RiskMatrixEntry:     flowName, riskDescription, severity, category, mitigation
+  MigrationRoadmap:    phases, totalEstimatedDuration, recommendedTeamSize
+  RoadmapPhase:        order, name, duration, flows, deliverables
+  AppendixItem:        title, content
+  DocumentMetadata:    model, totalTokensUsed, totalLatencyMs
+  PublishResult:       outputKey, markdownLength, flowCount, riskCount
+
+3. IMPLEMENTATION SUMMARY
+------------------------------------------------------------------------------
+  FreeMarkerConfig:       freeMarkerConfiguration() — VERSION_2_3_33, DefaultObjectWrapper, classpath "templates", UTF-8.
+  DocumentAssembler:      assemble(snapshotId, results) → flowSections (sorted by flowName), riskMatrix, roadmap, executiveSummary, appendices, metadata; slugify().
+  DocumentRenderer:        renderMarkdown(document) — template research-document.ftl, model document + generatedAtFormatted; throws RuntimeException on error.
+  OutputPublisher:         publish(snapshotId, results) — assemble, render; minio.putString("output", key, markdown, "text/markdown"); minio.putJson("output", jsonKey, document); counter flowforge.output.documents.published; returns PublishResult.
+  Templates:               research-document.ftl (TOC, Executive Summary, flow list with include flow-section.ftl, Risk Matrix table, Migration Roadmap, Appendices); flow-section.ftl (flow name, narrative, diagrams mermaid, keyFindings, openQuestions, recommendedNextSteps).
+  MinIO:                   libs/common MinioStorageClient putString/getString; bucket "output"; keys system-flows-research/{snapshotId}/system-flows-research.md, system-flows-research/{snapshotId}/document.json.
+
+4. UNIT TESTS
+------------------------------------------------------------------------------
+  DocumentAssemblerTest:   assemble_createsDocumentWithCorrectFlowSectionCount; assemble_generatesCorrectSlugAnchors; slugify_handlesSpecialCharacters; buildRiskMatrix_aggregatesAllRisksAcrossFlows; buildRiskMatrix_groupsBySeverityAndCategory; buildExecutiveSummary_computesCorrectCounts; buildRoadmap_createsOrderedPhases. All passing.
+  DocumentRendererTest:    renderMarkdown_producesValidMarkdownWithTitle; renderMarkdown_containsTocLinksForAllFlows; renderMarkdown_includesMermaidCodeBlocks; renderMarkdown_rendersRiskMatrixTable; renderMarkdown_rendersMigrationRoadmapPhases; renderMarkdown_handlesEmptyFlowSections. All passing.
+  OutputPublisherTest:     publish_storesBothMarkdownAndJsonToMinio; publish_returnsCorrectMetrics. All passing.
+  TestFixtures (publisher): sampleResearchDocument(flowCount), sampleResearchDocumentWithDiagrams().
+  TestFixtures (synthesis):  sampleFullResult(String flowName), fullResultWithRisks(int), fullResultWithMixedRisks().
+
+5. RESULT
+------------------------------------------------------------------------------
+  Result: PASS

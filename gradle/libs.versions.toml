@@ -14,11 +14,14 @@ flyway = "11.1.0"
 testcontainers = "1.20.6"
 freemarker = "2.3.33"
 resilience4j = "2.2.0"
-micrometer = "1.15.0"
+micrometer = "1.14.0"
+opentelemetry = "1.44.0"
+logstash-logback = "8.0"
 jackson = "2.18.3"
 fabric8 = "7.0.1"
 jgit = "7.1.0.202411261347-r"
 neo4j-driver = "5.26.0"
+dapr = "1.13.0"
 
 [libraries]
 spring-boot-starter-web = { module = "org.springframework.boot:spring-boot-starter-web" }
@@ -27,6 +30,7 @@ spring-boot-starter-actuator = { module = "org.springframework.boot:spring-boot-
 spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test" }
 spring-ai-openai-spring-boot-starter = { module = "org.springframework.ai:spring-ai-openai-spring-boot-starter", version.ref = "spring-ai" }
 spring-ai-openai = { module = "org.springframework.ai:spring-ai-openai", version.ref = "spring-ai" }
+spring-ai-ollama = { module = "org.springframework.ai:spring-ai-ollama", version.ref = "spring-ai" }
 spring-ai-qdrant-store = { module = "org.springframework.ai:spring-ai-qdrant-store-spring-boot-starter", version.ref = "spring-ai" }
 spring-data-neo4j = { module = "org.springframework.boot:spring-boot-starter-data-neo4j" }
 minio = { module = "io.minio:minio", version.ref = "minio" }
@@ -54,6 +58,11 @@ neo4j-java-driver = { module = "org.neo4j.driver:neo4j-java-driver", version.ref
 testcontainers-minio = { module = "org.testcontainers:minio", version.ref = "testcontainers" }
 jgit = { module = "org.eclipse.jgit:org.eclipse.jgit", version.ref = "jgit" }
 azure-storage-blob = { module = "com.azure:azure-storage-blob", version = "12.29.0" }
+dapr-sdk = { module = "io.dapr:dapr-sdk", version.ref = "dapr" }
+micrometer-registry-prometheus = { module = "io.micrometer:micrometer-registry-prometheus", version.ref = "micrometer" }
+micrometer-tracing-bridge-otel = { module = "io.micrometer:micrometer-tracing-bridge-otel", version.ref = "micrometer" }
+opentelemetry-exporter-otlp = { module = "io.opentelemetry:opentelemetry-exporter-otlp", version.ref = "opentelemetry" }
+logstash-logback-encoder = { module = "net.logstash.logback:logstash-logback-encoder", version.ref = "logstash-logback" }
 
 [plugins]
 spring-boot = { id = "org.springframework.boot", version.ref = "spring-boot" }

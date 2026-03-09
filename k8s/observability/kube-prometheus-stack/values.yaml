@@ -1,0 +1,98 @@
+grafana:
+  enabled: true
+  admin:
+    existingSecret: grafana-admin-credentials
+    userKey: admin-user
+    passwordKey: admin-password
+  sidecar:
+    dashboards:
+      enabled: true
+      label: grafana_dashboard
+      searchNamespace: ALL
+  persistence:
+    enabled: true
+    size: 10Gi
+  resources:
+    requests:
+      cpu: "250m"
+      memory: 512Mi
+    limits:
+      cpu: "500m"
+      memory: 1Gi
+
+prometheus:
+  prometheusSpec:
+    retention: 30d
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 50Gi
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+    resources:
+      requests:
+        cpu: "500m"
+        memory: 2Gi
+      limits:
+        cpu: "2"
+        memory: 4Gi
+
+  additionalServiceMonitors:
+    - name: flowforge-api
+      selector:
+        matchLabels:
+          app: flowforge-api
+      namespaceSelector:
+        matchNames:
+          - flowforge
+      endpoints:
+        - port: http
+          path: /actuator/prometheus
+          interval: 30s
+
+alertmanager:
+  enabled: true
+  alertmanagerSpec:
+    resources:
+      requests:
+        cpu: "100m"
+        memory: 128Mi
+      limits:
+        cpu: "250m"
+        memory: 256Mi
+
+additionalPrometheusRulesMap:
+  flowforge-alerts:
+    groups:
+      - name: flowforge.pipeline
+        rules:
+          - alert: StageFailureRateHigh
+            expr: >
+              sum(rate(flowforge_stage_failure_total[15m])) /
+              (sum(rate(flowforge_stage_success_total[15m])) + sum(rate(flowforge_stage_failure_total[15m]))) > 0.1
+            for: 5m
+            labels:
+              severity: warning
+            annotations:
+              summary: "Pipeline stage failure rate > 10%"
+          - alert: LLMLatencyHigh
+            expr: >
+              histogram_quantile(0.99, rate(flowforge_llm_call_duration_seconds_bucket[10m])) > 30
+            for: 5m
+            labels:
+              severity: warning
+            annotations:
+              summary: "LLM p99 latency > 30s"
+          - alert: PipelineStuck
+            expr: >
+              (flowforge_stage_success_total + flowforge_stage_failure_total) == 0
+              and (time() - flowforge_stage_duration_seconds_created) > 3600
+            for: 10m
+            labels:
+              severity: critical
+            annotations:
+              summary: "Pipeline stage running for > 1 hour with no completion"
+

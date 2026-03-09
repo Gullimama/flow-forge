@@ -1,0 +1,72 @@
+==============================================================================
+STAGE 26 — MLflow Experiment Tracking (Java Client) — VERIFICATION REPORT
+Date: 2026-03-07
+==============================================================================
+
+Stage 26 sign-off requires all of stages 1–26 to pass. Run: make verify
+
+0. CUMULATIVE OUTPUT — STAGES 1–25
+------------------------------------------------------------------------------
+
+---------- STAGES 1–24 ----------
+  (See stage-24.log, stage-25.log for full output.)
+  Result:               PASS
+
+---------- STAGE 25 OUTPUT ----------
+  Migration Pattern Classifier (DJL)
+  Result:               PASS
+
+1. MODULE & BUILD
+------------------------------------------------------------------------------
+  Module:              libs/mlflow
+  Gradle build:        BUILD SUCCESSFUL
+  Compile Java:        PASS
+  Compile Test Java:   PASS
+  Dependencies:        libs:common, spring-boot-starter-web, spring-boot-starter-actuator
+  test:                excludes @Tag("integration"), uses WireMock standalone
+
+2. CONFIGURATION & DATA MODEL
+------------------------------------------------------------------------------
+  MlflowProperties:    @ConfigurationProperties(prefix = "flowforge.mlflow") with
+                       trackingUri, experimentName, artifactLocation, timeout, maxRetries;
+                       defaults: http://mlflow.flowforge-obs.svc.cluster.local:5000,
+                       experiment "flowforge-models", timeout 30s, maxRetries 3.
+  FlowForge Orchestrator: @ConfigurationPropertiesScan(\"com.flowforge\") so MlflowProperties
+                          is bound alongside FlowForgeProperties.
+
+3. IMPLEMENTATION SUMMARY
+------------------------------------------------------------------------------
+  MlflowClient:        @Component using Spring RestClient; getOrCreateExperiment(name) calls
+                       /api/2.0/mlflow/experiments/get-by-name with fallback to /experiments/create,
+                       parses JSON via ObjectMapper to return experiment_id; createRun(experimentId, runName, tags)
+                       posts to /runs/create, parses run.info.run_id; logParam, logMetric, logBatch post to
+                       corresponding MLflow endpoints; logArtifact PUTs to /mlflow-artifacts with octet-stream.
+  ExperimentTracker:   @Service; trackRun(runName, params, TrainingFunction<T>) resolves experiment,
+                       creates run with tags (mlflow.source.name=flowforge, mlflow.runName, java.version),
+                       logs params via logBatch, executes training function with TrainingContext(runId, tracker),
+                       and ends run with FINISHED or FAILED; TrainingContext helpers logMetric, logArtifact(Object),
+                       logModel(byte[]).
+  MlflowHealthIndicator: @Component HealthIndicator; calls /api/2.0/mlflow/experiments/search?max_results=1 on
+                         trackingUri; reports Health.up with trackingUri on success, Health.down with detail on error.
+  TrackedAnomalyTrainer: libs/anomaly @Service; wraps AnomalyDetectorModel training with ExperimentTracker,
+                         logging snapshot_id, model_type, num_trees, subsample_size, feature_count, feature_dim,
+                         metric training_samples, and model artifact models/anomaly-model.smile.
+  TrackedGnnTrainer:    libs/gnn @Component; wraps GnnInferenceService.predictLinks/classifyNodes with ExperimentTracker,
+                         logging num_nodes, num_edges, link_threshold and metrics predicted_links, classified_nodes.
+
+4. UNIT TESTS
+------------------------------------------------------------------------------
+  MlflowClientTest:        WireMock-based; verifies getOrCreateExperiment existing/404→create, createRun returns runId,
+                           logParam/logMetric payloads, logArtifact PUT with octet-stream, endRun FINISHED status.
+  ExperimentTrackerTest:   Mocks MlflowClient; ensures trackRun logs params via logBatch, ends run FINISHED on success
+                           and FAILED on exception.
+  MlflowHealthIndicatorTest: WireMock-based; reports Status.UP when search endpoint responds 200, Status.DOWN on 5xx.
+  TrackedAnomalyTrainerTest: Mocks ExperimentTracker; verifies trainTracked(\"snap-1\", ...) calls tracker.trackRun
+                             with run name anomaly-snap-1 and parameter map including model_type.
+  TrackedGnnTrainerTest:   Mocks GnnInferenceService and ExperimentTracker; verifies runTracked delegates to
+                           tracker.trackRun(\"gnn-training\", params, ...).
+
+5. RESULT
+------------------------------------------------------------------------------
+  Result: PASS
+

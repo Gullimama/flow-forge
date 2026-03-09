@@ -21,8 +21,8 @@ class EmbeddingConfigTest {
     void codeEmbeddingModel_configuredWith1024Dimensions() {
         var props = new FlowForgeProperties(
             null, null, null, null, null, null, null,
-            new FlowForgeProperties.TeiProperties("http://localhost:8081", "http://localhost:8082", "http://localhost:8083")
-        );
+            new FlowForgeProperties.TeiProperties("http://localhost:8081", "http://localhost:8082", "http://localhost:8083"),
+            null);
         var config = new EmbeddingConfig();
         var model = config.codeEmbeddingModel(props);
         assertThat(model).isNotNull();

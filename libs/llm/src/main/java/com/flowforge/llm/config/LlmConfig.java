@@ -2,18 +2,40 @@ package com.flowforge.llm.config;
 
 import com.flowforge.common.config.FlowForgeProperties;
 import io.micrometer.observation.ObservationRegistry;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.ai.ollama.OllamaChatModel;
+import org.springframework.ai.ollama.api.OllamaApi;
+import org.springframework.ai.ollama.api.OllamaOptions;
+import org.springframework.ai.ollama.management.ModelManagementOptions;
 import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.ai.openai.api.OpenAiApi;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class LlmConfig {
 
     @Bean
     public ChatModel chatModel(FlowForgeProperties props, ObservationRegistry observationRegistry) {
+        if (props.ollama() != null && props.ollama().baseUrl() != null && !props.ollama().baseUrl().isBlank()) {
+            String baseUrl = props.ollama().baseUrl();
+            String modelName = props.ollama().chatModel() != null && !props.ollama().chatModel().isBlank()
+                ? props.ollama().chatModel()
+                : "llama3.1";
+
+            var api = OllamaApi.builder()
+                .baseUrl(baseUrl)
+                .build();
+
+            var options = OllamaOptions.builder()
+                .model(modelName)
+                .temperature(0.1)
+                .build();
+
+            return new OllamaChatModel(api, options, null, observationRegistry, ModelManagementOptions.defaults());
+        }
+
         String baseUrl = props.vllm() != null && props.vllm().baseUrl() != null && !props.vllm().baseUrl().isBlank()
             ? props.vllm().baseUrl()
             : "http://localhost:8000";

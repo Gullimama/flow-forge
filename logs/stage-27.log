@@ -1,0 +1,81 @@
+==============================================================================
+STAGE 27 — Evaluation Framework (JUnit 5 + Custom Metrics) — VERIFICATION REPORT
+Date: 2026-03-07
+==============================================================================
+
+Stage 27 sign-off requires all of stages 1–27 to pass. Run: make verify
+
+0. CUMULATIVE OUTPUT — STAGES 1–26
+------------------------------------------------------------------------------
+
+---------- STAGES 1–25 ----------
+  (See stage-25.log, stage-26.log for full output.)
+  Result:               PASS
+
+---------- STAGE 26 OUTPUT ----------
+  MLflow Experiment Tracking (Java Client)
+  Result:               PASS
+
+1. MODULE & BUILD
+------------------------------------------------------------------------------
+  Module:              libs/evaluation
+  Gradle build:        BUILD SUCCESSFUL
+  Compile Java:        PASS
+  Compile Test Java:   PASS
+  Dependencies:        libs:common, libs:retrieval, libs:synthesis, libs:embedding,
+                       libs:vector-store, libs:flow-builder, libs:mlflow, spring-ai-openai
+  test:                excludes @Tag("integration"); junit-jupiter via spring-boot-starter-test
+
+2. EVALUATION DOMAIN MODEL
+------------------------------------------------------------------------------
+  EvaluationResult:    sealed interface with:
+    - RetrievalEvaluation(queryId, retrievedCount, relevantCount, precision, recall, f1, mrr, ndcg, latency)
+    - SynthesisEvaluation(flowId, factualConsistency, completeness, coherence, technicalAccuracy, overallScore, issues)
+    - EmbeddingEvaluation(collectionName, intraCohesion, interSeparation, silhouetteScore, testedPairs, latency)
+    - EndToEndEvaluation(snapshotId, totalFlows, successfulFlows, successRate, totalLatency, perStageMetrics)
+    - StageMetrics(stageName, latency, inputCount, outputCount, qualityScore)
+
+3. IMPLEMENTATION SUMMARY
+------------------------------------------------------------------------------
+  RetrievalEvaluator:  @Component; uses HybridRetrievalService to run queries (BOTH scope) built from
+                       RetrievalTestCase(queryId, query, relevantIds, topK). Converts RankedDocument metadata
+                       "doc_id" to document IDs; computes precision, recall, F1, MRR, NDCG, and latency for each case.
+  SynthesisEvaluator:  @Component; uses ChatModel (from libs/llm) as LLM-as-judge. Evaluates:
+                       - Factual consistency via judge JSON {"score","issues"}; strips ```json fences.
+                       - Completeness by checking that flow steps’ serviceName values appear in narrative.
+                       - Coherence via markdown sections and logical connectors.
+                       - Technical accuracy via coverage of expected terms from FlowCandidate steps.
+                       Produces SynthesisEvaluation with overallScore weighted (0.3/0.25/0.2/0.25).
+  EmbeddingEvaluator:  @Component; uses VectorStoreService and codeEmbeddingModel (EmbeddingModel) to embed
+                       EmbeddingTestCase(label,text) instances; groups by label, computes intra-cluster cohesion,
+                       inter-cluster separation, and silhouetteScore = (b - a) / max(a,b); returns EmbeddingEvaluation.
+  PipelineEvaluator:   @Service; orchestrates evaluation across retrieval, embeddings, and synthesis using
+                       ExperimentTracker and MLflow. runEvaluation(snapshotId, EvaluationDataset) logs params and
+                       metrics to MLflow (retrieval.precision/recall/mrr, embedding.*.silhouette, synthesis.quality),
+                       emits artifacts (retrieval_results.json, embedding_results.json, synthesis_results.json,
+                       full_report.json) and returns EvaluationReport with averages and per-section results.
+  EvaluationDataset:   record bundling retrievalCases, synthesisCases, codeEmbeddingCases, logEmbeddingCases.
+  SynthesisCase:       record of flow (FlowCandidate), synthesis (FinalNarrativeOutput), evidence (RankedDocument list).
+
+4. UNIT TESTS
+------------------------------------------------------------------------------
+  RetrievalEvaluatorTest:   Mocks HybridRetrievalService; verifies:
+                            - precision=0.6 for 3/5 relevant,
+                            - recall=0.3 for 3/10 relevant,
+                            - F1 as harmonic mean of P and R,
+                            - MRR=1/3 for first relevant at position 3,
+                            - NDCG≈1.0 for perfect ranking,
+                            - all-zero metrics for empty results.
+  SynthesisEvaluatorTest:   Mocks ChatModel; covers:
+                            - callJudge strips markdown fences and parses score 0.85,
+                            - completeness=1.0 when all steps mentioned,
+                            - completeness<0.8 with “Missing coverage” issue when steps omitted,
+                            - fallback factualConsistency=0.5 with “LLM judge unavailable” issue on error,
+                            - coherence boosted by headings and logical connectors.
+  EmbeddingEvaluatorTest:   Mocks EmbeddingModel; verifies cosineSimilarity by asserting
+                            intraCohesion≈1.0 for identical vectors.
+
+5. RESULT
+------------------------------------------------------------------------------
+  Result: PASS
+

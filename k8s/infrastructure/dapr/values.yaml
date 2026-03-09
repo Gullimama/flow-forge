@@ -1,0 +1,33 @@
+global:
+  logAsJson: true
+
+dashboard:
+  enabled: true
+
+injector:
+  resources:
+    requests:
+      cpu: "250m"
+      memory: 256Mi
+    limits:
+      cpu: "500m"
+      memory: 512Mi
+
+sidecarInjectorWebhook:
+  resources:
+    requests:
+      cpu: "250m"
+      memory: 256Mi
+    limits:
+      cpu: "500m"
+      memory: 512Mi
+
+placement:
+  resources:
+    requests:
+      cpu: "250m"
+      memory: 256Mi
+    limits:
+      cpu: "500m"
+      memory: 512Mi
+

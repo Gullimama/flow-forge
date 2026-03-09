@@ -1,0 +1,64 @@
+==============================================================================
+STAGE 22 — Synthesis Stages 4–6 (Dependencies, Migration Plan, Final Narrative) — VERIFICATION REPORT
+Date: 2026-03-07
+==============================================================================
+
+Stage 22 sign-off requires all of stages 1–22 to pass. Run: make verify
+
+0. CUMULATIVE OUTPUT — STAGES 1–21
+------------------------------------------------------------------------------
+
+---------- STAGES 1–20 ----------
+  (See stage-21.log for full output.)
+  Result:               PASS
+
+---------- STAGE 21 OUTPUT ----------
+  Module:              libs/synthesis
+  Synthesis Stages 1–3 (FlowAnalysis, CodeExplanation, RiskAssessment, SynthesisStages1To3Service)
+  Result:               PASS
+
+1. MODULE & BUILD
+------------------------------------------------------------------------------
+  Module:              libs/synthesis (extended)
+  Gradle build:        BUILD SUCCESSFUL
+  Compile Java:        PASS
+  Compile Test Java:   PASS
+  test:                excludes @Tag("integration")
+
+2. OUTPUT RECORDS (Stage 4–6)
+------------------------------------------------------------------------------
+  DependencyMappingOutput: flowName, runtimeDependencies, buildDependencies, conflicts, sharedLibraries, dependencyGraph
+  RuntimeDependency:       serviceName, dependencyName, version, purpose, type (DATABASE, CACHE, MESSAGE_BROKER, etc.)
+  BuildDependency:        serviceName, groupId, artifactId, version, scope
+  DependencyConflict:    artifactId, service1, version1, service2, version2, resolution
+  SharedLibrary:         name, version, consumers, migrationImpact
+  DependencyGraph:       nodes, edges (DependencyEdge: from, to, label)
+  MigrationPlanOutput:    flowName, strategy (BIG_BANG, STRANGLER_FIG, PARALLEL_RUN, BRANCH_BY_ABSTRACTION), phases, prerequisites, effort, testingStrategy, rollbackPlan
+  MigrationPhase:         order, phaseName, description, services, tasks, deliverables, estimatedDuration, risks
+  EstimatedEffort:        totalDuration, teamSize, complexityRating, perServiceEstimate
+  RollbackPlan:           strategy, rollbackSteps, dataBackupApproach, featureFlagUsage
+  FinalNarrativeOutput:   flowName, executiveSummary, detailedNarrative, diagrams, keyFindings, openQuestions, recommendedNextSteps
+  DiagramSpec:           title, type (SEQUENCE, FLOWCHART, C4_CONTAINER, STATE_MACHINE), mermaidCode
+  KeyFinding:            title, description, severity (INFO, WARNING, CRITICAL), evidence
+  SynthesisFullResult:   candidateId, stages1to3, dependencyMapping, migrationPlan, narrative
+
+3. IMPLEMENTATION SUMMARY
+------------------------------------------------------------------------------
+  DependencyMappingStage:  mapDependencies(candidate, stages1to3); priorStageOutput = serialize(stages1to3), buildEvidence = formatBuildEvidence(candidate); executor stage4; minio.putJson evidence/synthesis/stage4/{snapshotId}/{candidateId}.json
+  MigrationPlanStage:      planMigration(candidate, stages1to3, dependencyMapping); riskAssessment + dependencyMapping serialized; executor stage5; minio.putJson stage5
+  FinalNarrativeStage:    generateNarrative(candidate, stages1to3, depMapping, migrationPlan); flowAnalysis, codeExplanation, riskAssessment, dependencyMapping, migrationPlan serialized; executor stage6; minio.putJson stage6
+  SynthesisStages4To6Service:  runStages4To6(candidate, stages1to3) — sequential stage4 → stage5 → stage6 with timers (flowforge.synthesis.stage4/5/6.latency); returns SynthesisFullResult
+  SynthesisPipeline:      synthesize(snapshotId, candidates) — for each candidate: runStages1To3 then runStages4To6; on exception: log, counter flowforge.synthesis.flows.failed, putJson synthesis/partial/{snapshotId}/{candidateId}.json (flowName, error, failedAt); on success: counter flowforge.synthesis.flows.completed; finally putJson evidence/synthesis/complete/{snapshotId}.json with full results list
+
+4. UNIT TESTS
+------------------------------------------------------------------------------
+  DependencyMappingStageTest:  mapDependencies_passesStages1To3AsContext; mapDependencies_detectsVersionConflicts. All passing.
+  MigrationPlanStageTest:     planMigration_injectsRiskAndDependencyContext; planMigration_returnsOrderedPhases. All passing.
+  FinalNarrativeStageTest:    generateNarrative_injectsAllPriorStageOutputs; generateNarrative_includesMermaidDiagrams. All passing.
+  SynthesisStages4To6ServiceTest:  runStages4To6_chainsOutputsSequentially (inOrder verify). All passing.
+  SynthesisPipelineTest:      synthesize_runsFullPipelineForAllCandidates; synthesize_checkpointsPartialFailureToMinio; synthesize_continuesAfterOneFlowFails. All passing.
+  TestFixtures (extended):    samplePartialResult, sampleDependencyMappingOutput, dependencyOutputWithConflicts, sampleMigrationPlanOutput, sampleFinalNarrativeOutput, sampleFullResult, multiVersionFlowCandidate.
+
+5. RESULT
+------------------------------------------------------------------------------
+  Result: PASS

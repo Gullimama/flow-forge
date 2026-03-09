@@ -3,6 +3,7 @@ package com.flowforge.graph.query;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Session;
@@ -165,6 +166,56 @@ public class Neo4jGraphQueryService {
                     LIMIT 50
                     """,
                     Map.of("q", query.trim()));
+                return result.list(Record::asMap);
+            });
+        }
+    }
+
+    /**
+     * Get all nodes for a snapshot for GNN graph preparation.
+     * Returns maps with: id (elementId string), type (first label), degree, isReactive, reactiveComplexity.
+     * Order is stable by elementId for consistent node indexing.
+     */
+    public List<Map<String, Object>> getAllNodes(UUID snapshotId) {
+        if (snapshotId == null) {
+            return List.of();
+        }
+        String sid = snapshotId.toString();
+        try (Session session = driver.session()) {
+            return session.executeRead(tx -> {
+                var result = tx.run("""
+                    MATCH (n) WHERE n.snapshotId = $sid
+                    OPTIONAL MATCH (n)-[r]-()
+                    WITH n, labels(n) AS labels, count(r) AS degree
+                    RETURN elementId(n) AS id,
+                           labels[0] AS type,
+                           degree,
+                           (n.isReactive = true) AS isReactive,
+                           coalesce(n.reactiveComplexity, 'NONE') AS reactiveComplexity
+                    ORDER BY elementId(n)
+                    """,
+                    Map.of("sid", sid));
+                return result.list(Record::asMap);
+            });
+        }
+    }
+
+    /**
+     * Get all directed edges for a snapshot (source and target as elementId).
+     * Used with getAllNodes to build GNN edge index by mapping id -> node index.
+     */
+    public List<Map<String, Object>> getAllEdges(UUID snapshotId) {
+        if (snapshotId == null) {
+            return List.of();
+        }
+        String sid = snapshotId.toString();
+        try (Session session = driver.session()) {
+            return session.executeRead(tx -> {
+                var result = tx.run("""
+                    MATCH (a)-[r]->(b) WHERE a.snapshotId = $sid AND b.snapshotId = $sid
+                    RETURN elementId(a) AS source, elementId(b) AS target
+                    """,
+                    Map.of("sid", sid));
                 return result.list(Record::asMap);
             });
         }

@@ -12,7 +12,9 @@ public record FlowForgeProperties(
     Neo4jProperties neo4j,
     PostgresProperties postgres,
     VllmProperties vllm,
-    TeiProperties tei
+    TeiProperties tei,
+    OllamaProperties ollama,
+    GnnProperties gnn
 ) {
     public record MinioProperties(boolean enabled, String endpoint, String accessKey, String secretKey, boolean secure) {}
     public record AzureProperties(boolean enabled, String connectionString) {}
@@ -22,4 +24,6 @@ public record FlowForgeProperties(
     public record PostgresProperties(String url, String username, String password) {}
     public record VllmProperties(String baseUrl, String apiKey, String model) {}
     public record TeiProperties(String codeUrl, String logUrl, String rerankerUrl) {}
+    public record OllamaProperties(String baseUrl, String chatModel, String embeddingModel) {}
+    public record GnnProperties(String linkPredictionModelPath, String nodeClassificationModelPath, String classifierModelPath) {}
 }

@@ -15,13 +15,15 @@ import io.minio.StatObjectArgs;
 import io.minio.errors.ErrorResponseException;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+
 public class MinioStorageClient {
 
     public static final List<String> REQUIRED_BUCKETS = List.of(
         "raw-git", "raw-logs", "parsed-code", "parsed-logs",
-        "graph-artifacts", "research-output", "model-artifacts", "evidence"
+        "graph-artifacts", "research-output", "model-artifacts", "evidence", "output"
     );
 
     private final MinioClient minioClient;
@@ -60,6 +62,16 @@ public class MinioStorageClient {
         } catch (Exception e) {
             throw new StorageException("Failed to put object: " + bucket + "/" + key, e);
         }
+    }
+
+    /** Upload a string (e.g. Markdown) with the given content type. */
+    public String putString(String bucket, String key, String content, String contentType) {
+        return putObject(bucket, key, content.getBytes(StandardCharsets.UTF_8), contentType);
+    }
+
+    /** Download an object as a UTF-8 string. */
+    public String getString(String bucket, String key) {
+        return new String(getObject(bucket, key), StandardCharsets.UTF_8);
     }
 
     /** Serialize an object to JSON and upload. */

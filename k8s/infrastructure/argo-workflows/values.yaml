@@ -1,0 +1,52 @@
+controller:
+  resources:
+    requests:
+      cpu: "500m"
+      memory: 512Mi
+    limits:
+      cpu: "1"
+      memory: 1Gi
+  workflowDefaults:
+    spec:
+      serviceAccountName: flowforge-workflow
+      nodeSelector:
+        agentpool: cpupool
+      ttlStrategy:
+        secondsAfterCompletion: 86400
+        secondsAfterFailure: 172800
+
+server:
+  authMode: server
+  resources:
+    requests:
+      cpu: "250m"
+      memory: 256Mi
+    limits:
+      cpu: "500m"
+      memory: 512Mi
+
+executor:
+  image:
+    registry: quay.io
+    repository: argoproj/argoexec
+    tag: v3.5.0
+
+artifactRepository:
+  s3:
+    bucket: argo-artifacts
+    endpoint: flowforge-minio.flowforge-infra.svc.cluster.local:9000
+    insecure: true
+    accessKeySecret:
+      name: argo-minio-credentials
+      key: access-key
+    secretKeySecret:
+      name: argo-minio-credentials
+      key: secret-key
+
+workflow:
+  serviceAccount:
+    create: true
+    name: flowforge-workflow
+  rbac:
+    create: true
+

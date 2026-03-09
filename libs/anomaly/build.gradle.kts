@@ -12,6 +12,7 @@ dependencyManagement {
 dependencies {
     implementation(project(":libs:common"))
     implementation(project(":libs:log-parser"))
+    implementation(project(":libs:mlflow"))
     implementation(libs.smile.core)
 
     testImplementation(libs.spring.boot.starter.test)

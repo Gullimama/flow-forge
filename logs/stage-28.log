@@ -1,0 +1,98 @@
+==============================================================================
+STAGE 28 — Argo Workflows Orchestration — VERIFICATION REPORT
+Date: 2026-03-07
+==============================================================================
+
+Stage 28 sign-off requires all of stages 1–28 to pass. Run: make verify
+
+0. CUMULATIVE OUTPUT — STAGES 1–27
+------------------------------------------------------------------------------
+
+---------- STAGES 1–26 ----------
+  (See stage-26.log, stage-27.log for full output.)
+  Result:               PASS
+
+---------- STAGE 27 OUTPUT ----------
+  Evaluation Framework (JUnit 5 + Custom Metrics)
+  Result:               PASS
+
+1. WORKFLOW CONFIGURATION
+------------------------------------------------------------------------------
+  ArgoProperties:      @ConfigurationProperties(prefix = "flowforge.argo") in orchestrator:
+                       serverUrl, namespace, serviceAccountName, imagePullPolicy,
+                       workflowTimeout, defaultRetry(RetryPolicy), stageResources(StageResources);
+                       sensible defaults (Argo server DNS, namespace flowforge, SA flowforge-workflow,
+                       IfNotPresent, 6h timeout, retry 3x with backoff).
+
+2. ARGO WORKFLOW DAG YAML
+------------------------------------------------------------------------------
+  k8s/argo/flowforge-pipeline.yaml:
+    - Defines Workflow with entrypoint flowforge-dag, SA flowforge-workflow, TTL strategy and parameters:
+      snapshot-id, repo-urls, log-time-range, run-gnn.
+    - DAG tasks map to pipeline stages:
+      clone-repos, fetch-logs, fetch-manifests → parse-code/parse-logs/parse-topology →
+      index-opensearch, build-knowledge-graph → detect-anomalies, mine-sequences →
+      embed-code/embed-logs (GPU) → optional gnn-analysis (when run-gnn) →
+      classify-migration → build-candidates → synthesize → publish-output → evaluate.
+    - Templates:
+      stage-runner (CPU image flowforge-pipeline-cpu, Java entrypoint with --stage/--args, retries & resources),
+      gpu-stage-runner (GPU image flowforge-pipeline-gpu, GPU requests/limits, nodeSelector gpupool, toleration).
+  services/orchestrator/src/main/resources/argo/flowforge-pipeline.yaml:
+    - Same workflow embedded on classpath for Argo client templating.
+
+3. ARGO WORKFLOW SERVICE & DTOs
+------------------------------------------------------------------------------
+  ArgoWorkflowService: @Service in orchestrator; uses RestClient + ArgoProperties:
+    - submitPipeline(PipelineRequest): loads YAML template via YAMLFactory, sets spec.arguments.parameters values
+      from snapshotId, repoUrls, logTimeRange, runGnn; POSTs to /api/v1/workflows/{ns}; increments
+      flowforge.argo.workflow.submitted and returns WorkflowStatus(name, phase, creationTimestamp).
+    - getStatus(name): GET /api/v1/workflows/{ns}/{name}, maps to WorkflowStatus.
+    - getTaskStatuses(name): GET workflow, inspects status.nodes, returns TaskStatus for Pod-type nodes
+      (displayName, phase, timestamps, message).
+    - waitForCompletion(name, timeout): polls getStatus every 10s until terminal phase (Succeeded/Failed/Error),
+      increments flowforge.argo.workflow.completed with phase tag; throws TimeoutException on deadline.
+  DTOs: internal records WorkflowResponse(metadata,status), WorkflowMetadata(name,creationTimestamp),
+        WorkflowStatusBody(phase,nodes), WorkflowNodeStatus(type,displayName,phase,startedAt,finishedAt,message),
+        and public PipelineRequest, WorkflowStatus, TaskStatus in service package.
+
+4. STAGE RUNNER API (ORCHESTRATOR)
+------------------------------------------------------------------------------
+  PipelineController: @RestController at /api/v1/pipelines:
+    - POST /api/v1/pipelines → submitPipeline(PipelineRequest) returns 202 Accepted + WorkflowStatus body.
+    - GET  /api/v1/pipelines/{name} → getStatus(name).
+    - GET  /api/v1/pipelines/{name}/tasks → getTaskStatuses(name).
+
+5. ARGO WORKFLOWS AKS DEPLOYMENT
+------------------------------------------------------------------------------
+  k8s/argocd/apps/argo-workflows.yaml:
+    - ArgoCD Application using Helm chart argoproj/argo-workflows with values from
+      k8s/infrastructure/argo-workflows/values.yaml; deploys into namespace argo.
+  k8s/infrastructure/argo-workflows/values.yaml:
+    - Controller/server/executor resources, artifactRepository S3 backend pointing to MinIO
+      (flowforge-minio.flowforge-infra.svc.cluster.local:9000) with argo-minio-credentials, workflow
+      serviceAccount flowforge-workflow with RBAC.
+
+6. MODULE & BUILD
+------------------------------------------------------------------------------
+  Module:              services/orchestrator
+  Gradle build:        BUILD SUCCESSFUL
+  Compile Java:        PASS
+  Compile Test Java:   PASS
+  Dependencies:        libs:common, spring-boot-starter-web, spring-boot-starter-actuator,
+                       jackson-databind, jackson-dataformat-yaml, fabric8-kubernetes-client,
+                       jakarta.validation (now unused), hibernate-validator, wiremock-standalone (test).
+
+7. TESTS
+------------------------------------------------------------------------------
+  ArgoWorkflowServiceTest: WireMock-based; verifies:
+    - submitPipeline posts workflow and returns Running status with workflow name.
+    - getStatus returns Succeeded phase.
+    - getTaskStatuses filters Pod nodes and maps to TaskStatus list.
+    - waitForCompletion returns terminal Succeeded status when Argo reports Succeeded on first poll.
+  PipelineControllerTest: verifies REST endpoints delegate to ArgoWorkflowService and return expected
+    HTTP responses and payloads.
+
+8. RESULT
+------------------------------------------------------------------------------
+  Result: PASS
+

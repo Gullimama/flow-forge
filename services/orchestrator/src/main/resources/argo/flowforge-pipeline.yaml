@@ -1,0 +1,285 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: flowforge-pipeline-
+  namespace: flowforge
+  labels:
+    app: flowforge
+    component: pipeline
+spec:
+  entrypoint: flowforge-dag
+  serviceAccountName: flowforge-workflow
+  activeDeadlineSeconds: 21600
+  ttlStrategy:
+    secondsAfterCompletion: 86400
+    secondsAfterFailure: 172800
+  arguments:
+    parameters:
+      - name: snapshot-id
+      - name: repo-urls
+        value: '[]'
+      - name: log-time-range
+        value: '24h'
+      - name: run-gnn
+        value: 'true'
+
+  templates:
+    - name: flowforge-dag
+      dag:
+        tasks:
+          - name: clone-repos
+            template: stage-runner
+            arguments:
+              parameters:
+                - name: stage
+                  value: "clone-repos"
+                - name: args
+                  value: '{"repoUrls": "{{workflow.parameters.repo-urls}}", "snapshotId": "{{workflow.parameters.snapshot-id}}"}'
+
+          - name: fetch-logs
+            template: stage-runner
+            arguments:
+              parameters:
+                - name: stage
+                  value: "fetch-logs"
+                - name: args
+                  value: '{"snapshotId": "{{workflow.parameters.snapshot-id}}", "timeRange": "{{workflow.parameters.log-time-range}}"}'
+
+          - name: fetch-manifests
+            template: stage-runner
+            arguments:
+              parameters:
+                - name: stage
+                  value: "fetch-manifests"
+                - name: args
+                  value: '{"snapshotId": "{{workflow.parameters.snapshot-id}}"}'
+
+          - name: parse-code
+            template: stage-runner
+            dependencies: [clone-repos]
+            arguments:
+              parameters:
+                - name: stage
+                  value: "parse-code"
+                - name: args
+                  value: '{"snapshotId": "{{workflow.parameters.snapshot-id}}"}'
+
+          - name: parse-logs
+            template: stage-runner
+            dependencies: [fetch-logs]
+            arguments:
+              parameters:
+                - name: stage
+                  value: "parse-logs"
+                - name: args
+                  value: '{"snapshotId": "{{workflow.parameters.snapshot-id}}"}'
+
+          - name: parse-topology
+            template: stage-runner
+            dependencies: [fetch-manifests]
+            arguments:
+              parameters:
+                - name: stage
+                  value: "parse-topology"
+                - name: args
+                  value: '{"snapshotId": "{{workflow.parameters.snapshot-id}}"}'
+
+          - name: index-opensearch
+            template: stage-runner
+            dependencies: [parse-code, parse-logs]
+            arguments:
+              parameters:
+                - name: stage
+                  value: "index-opensearch"
+                - name: args
+                  value: '{"snapshotId": "{{workflow.parameters.snapshot-id}}"}'
+
+          - name: build-knowledge-graph
+            template: stage-runner
+            dependencies: [parse-code, parse-topology]
+            arguments:
+              parameters:
+                - name: stage
+                  value: "build-knowledge-graph"
+                - name: args
+                  value: '{"snapshotId": "{{workflow.parameters.snapshot-id}}"}'
+
+          - name: detect-anomalies
+            template: stage-runner
+            dependencies: [parse-logs]
+            arguments:
+              parameters:
+                - name: stage
+                  value: "detect-anomalies"
+                - name: args
+                  value: '{"snapshotId": "{{workflow.parameters.snapshot-id}}"}'
+
+          - name: mine-sequences
+            template: stage-runner
+            dependencies: [parse-logs, build-knowledge-graph]
+            arguments:
+              parameters:
+                - name: stage
+                  value: "mine-sequences"
+                - name: args
+                  value: '{"snapshotId": "{{workflow.parameters.snapshot-id}}"}'
+
+          - name: embed-code
+            template: gpu-stage-runner
+            dependencies: [parse-code]
+            arguments:
+              parameters:
+                - name: stage
+                  value: "embed-code"
+                - name: args
+                  value: '{"snapshotId": "{{workflow.parameters.snapshot-id}}"}'
+
+          - name: embed-logs
+            template: gpu-stage-runner
+            dependencies: [parse-logs]
+            arguments:
+              parameters:
+                - name: stage
+                  value: "embed-logs"
+                - name: args
+                  value: '{"snapshotId": "{{workflow.parameters.snapshot-id}}"}'
+
+          - name: gnn-analysis
+            template: gpu-stage-runner
+            dependencies: [build-knowledge-graph, embed-code]
+            when: "'{{workflow.parameters.run-gnn}}' == 'true'"
+            arguments:
+              parameters:
+                - name: stage
+                  value: "gnn-analysis"
+                - name: args
+                  value: '{"snapshotId": "{{workflow.parameters.snapshot-id}}"}'
+
+          - name: classify-migration
+            template: stage-runner
+            dependencies: [parse-code, embed-code]
+            arguments:
+              parameters:
+                - name: stage
+                  value: "classify-migration"
+                - name: args
+                  value: '{"snapshotId": "{{workflow.parameters.snapshot-id}}"}'
+
+          - name: build-candidates
+            template: stage-runner
+            dependencies:
+              - index-opensearch
+              - build-knowledge-graph
+              - detect-anomalies
+              - mine-sequences
+              - embed-code
+              - embed-logs
+              - classify-migration
+            arguments:
+              parameters:
+                - name: stage
+                  value: "build-candidates"
+                - name: args
+                  value: '{"snapshotId": "{{workflow.parameters.snapshot-id}}"}'
+
+          - name: synthesize
+            template: stage-runner
+            dependencies: [build-candidates]
+            arguments:
+              parameters:
+                - name: stage
+                  value: "synthesize"
+                - name: args
+                  value: '{"snapshotId": "{{workflow.parameters.snapshot-id}}"}'
+
+          - name: publish-output
+            template: stage-runner
+            dependencies: [synthesize]
+            arguments:
+              parameters:
+                - name: stage
+                  value: "publish-output"
+                - name: args
+                  value: '{"snapshotId": "{{workflow.parameters.snapshot-id}}"}'
+
+          - name: evaluate
+            template: stage-runner
+            dependencies: [publish-output]
+            arguments:
+              parameters:
+                - name: stage
+                  value: "evaluate"
+                - name: args
+                  value: '{"snapshotId": "{{workflow.parameters.snapshot-id}}"}'
+
+    - name: stage-runner
+      inputs:
+        parameters:
+          - name: stage
+          - name: args
+      retryStrategy:
+        limit: 3
+        retryPolicy: "Always"
+        backoff:
+          duration: "30s"
+          factor: 2
+          maxDuration: "10m"
+      container:
+        image: flowforge-pipeline-cpu:latest
+        imagePullPolicy: IfNotPresent
+        command: ["java", "-jar", "/app/pipeline.jar"]
+        args:
+          - "--stage={{inputs.parameters.stage}}"
+          - "--args={{inputs.parameters.args}}"
+        env:
+          - name: JAVA_OPTS
+            value: "-XX:+UseZGC -Xmx4g"
+          - name: SPRING_PROFILES_ACTIVE
+            value: "aks"
+        resources:
+          requests:
+            cpu: "1"
+            memory: "4Gi"
+          limits:
+            cpu: "4"
+            memory: "8Gi"
+
+    - name: gpu-stage-runner
+      inputs:
+        parameters:
+          - name: stage
+          - name: args
+      retryStrategy:
+        limit: 2
+        retryPolicy: "Always"
+        backoff:
+          duration: "60s"
+          factor: 2
+      container:
+        image: flowforge-pipeline-gpu:latest
+        imagePullPolicy: IfNotPresent
+        command: ["java", "-jar", "/app/pipeline.jar"]
+        args:
+          - "--stage={{inputs.parameters.stage}}"
+          - "--args={{inputs.parameters.args}}"
+        env:
+          - name: JAVA_OPTS
+            value: "-XX:+UseZGC -Xmx8g"
+          - name: SPRING_PROFILES_ACTIVE
+            value: "aks,gpu"
+        resources:
+          requests:
+            cpu: "2"
+            memory: "8Gi"
+            nvidia.com/gpu: "1"
+          limits:
+            cpu: "8"
+            memory: "16Gi"
+            nvidia.com/gpu: "1"
+      nodeSelector:
+        agentpool: gpupool
+      tolerations:
+        - key: "nvidia.com/gpu"
+          operator: "Exists"
+          effect: "NoSchedule"
+

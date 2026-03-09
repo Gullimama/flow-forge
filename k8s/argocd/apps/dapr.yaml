@@ -1,0 +1,32 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: dapr
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: flowforge
+  sources:
+    - repoURL: https://dapr.github.io/helm-charts
+      chart: dapr
+      targetRevision: 1.13.*
+      helm:
+        valueFiles:
+          - $values/k8s/infrastructure/dapr/values.yaml
+    - repoURL: https://github.com/tesco/flow-forge.git
+      targetRevision: HEAD
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: dapr-system
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+

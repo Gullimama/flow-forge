@@ -13,6 +13,7 @@ dependencyManagement {
 dependencies {
     implementation(project(":libs:common"))
     implementation(libs.spring.ai.openai)
+    implementation(libs.spring.ai.ollama)
     implementation(libs.spring.boot.starter.actuator)
     implementation(libs.resilience4j.spring.boot3)
     implementation(libs.resilience4j.circuitbreaker)
