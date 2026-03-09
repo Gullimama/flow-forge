@@ -1,0 +1,55 @@
+==============================================================================
+STAGE 20 — vLLM Generation Model (Spring AI ChatModel) — VERIFICATION REPORT
+Date: 2026-03-07
+==============================================================================
+
+Stage 20 sign-off requires all of stages 1–20 to pass. Run: make verify
+
+0. CUMULATIVE OUTPUT — STAGES 1–19
+------------------------------------------------------------------------------
+
+---------- STAGES 1–18 ----------
+  (See stage-19.log for full output.)
+  Result:               PASS
+
+---------- STAGE 19 OUTPUT ----------
+  Module:              libs/flow-builder
+  Flow Candidate Builder (FlowCandidate, FlowCandidateBuilder, MinIO evidence)
+  Result:               PASS
+
+1. MODULE & BUILD
+------------------------------------------------------------------------------
+  Module:              libs/llm
+  Gradle build:        BUILD SUCCESSFUL
+  Compile Java:        PASS
+  Compile Test Java:   PASS
+  Dependencies:        libs:common, spring-ai-openai, spring-boot-starter-actuator, resilience4j (spring-boot3, circuitbreaker, retry)
+  test:                excludes @Tag("integration")
+
+2. K8S vLLM (if applicable)
+------------------------------------------------------------------------------
+  ArgoCD app:          k8s/argocd/apps/vllm.yaml (sync-wave 5, flowforge-ml)
+  Deployment:          k8s/ml-serving/vllm/ (Qwen2.5-Coder-32B-Instruct, 2 GPUs, port 8000)
+  Service:             ClusterIP 8000
+  PVC:                 vllm-model-cache 100Gi
+
+3. IMPLEMENTATION SUMMARY
+------------------------------------------------------------------------------
+  LlmConfig:           ChatModel bean via OpenAiApi(baseUrl from FlowForgeProperties.vllm), OpenAiChatOptions (model, temperature 0.1, maxTokens 8192), OpenAiChatModel(api, options, null, null, observationRegistry).
+  PromptTemplateManager:  Loads 11 templates from classpath (prompts/*.st); render(templateName, variables) → Prompt; Spring AI PromptTemplate + ClassPathResource.
+  Prompts:             flow-analysis, code-explanation, migration-risk, dependency-analysis, reactive-complexity, synthesis-stage1..6.
+  StructuredOutputService:  generate(templateName, variables, outputType) with BeanOutputConverter; augments variables with "format" (JSON schema); getResponseContent from ChatResponse getResult().getOutput().getText().
+  LlmGenerationService:  generate() / generateStructured() with @CircuitBreaker(name = "vllm") and @Retry(name = "vllm"); fallbackGenerate returns error message string; fallbackStructured throws LlmGenerationException; token counters (flowforge.llm.tokens.prompt/completion); latency timers (flowforge.llm.generation.latency, flowforge.llm.generation.structured.latency).
+  LlmGenerationException:  RuntimeException(message, cause) for structured fallback.
+  Resilience4j:        application-llm.yml — vllm circuit breaker (sliding-window 10, failure 50%, wait 60s, slow 80% / 120s), retry (max 2, wait 2s, ResourceAccessException, SocketTimeoutException).
+
+4. UNIT TESTS
+------------------------------------------------------------------------------
+  PromptTemplateManagerTest:  render_knownTemplate_populatesVariables; render_unknownTemplate_throwsIllegalArgument; allElevenTemplates_loadSuccessfully. All passing.
+  StructuredOutputServiceTest:  generate_parsesValidJsonIntoRecord; generate_addsFormatInstructionsToVariables; generate_invalidJson_throwsConversionException. All passing.
+  LlmGenerationServiceTest:  generate_returnsLlmContent; generate_tracksTokenUsage; fallbackGenerate_returnsErrorMessage; fallbackStructured_throwsLlmGenerationException. All passing.
+  TestFixtures:        chatResponse, chatResponseWithTokens, openAiChatCompletionResponse, minimalTemplateVars(templateName).
+
+5. RESULT
+------------------------------------------------------------------------------
+  Result: PASS

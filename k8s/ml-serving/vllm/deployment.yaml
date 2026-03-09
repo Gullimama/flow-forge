@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vllm
+  namespace: flowforge-ml
+  labels:
+    app.kubernetes.io/name: vllm
+    app.kubernetes.io/component: llm-serving
+    app.kubernetes.io/part-of: flowforge
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: vllm
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: vllm
+        app.kubernetes.io/component: llm-serving
+    spec:
+      nodeSelector:
+        agentpool: gpupool
+      tolerations:
+        - key: nvidia.com/gpu
+          operator: Equal
+          value: present
+          effect: NoSchedule
+      containers:
+        - name: vllm
+          image: vllm/vllm-openai:v0.6.6
+          args:
+            - --model
+            - Qwen/Qwen2.5-Coder-32B-Instruct
+            - --tensor-parallel-size
+            - "2"
+            - --max-model-len
+            - "32768"
+            - --gpu-memory-utilization
+            - "0.90"
+            - --port
+            - "8000"
+          ports:
+            - containerPort: 8000
+              name: http
+              protocol: TCP
+          resources:
+            requests:
+              cpu: "4"
+              memory: 32Gi
+              nvidia.com/gpu: "2"
+            limits:
+              cpu: "4"
+              memory: 32Gi
+              nvidia.com/gpu: "2"
+          readinessProbe:
+            httpGet:
+              path: /v1/models
+              port: 8000
+            initialDelaySeconds: 120
+            periodSeconds: 15
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 180
+            periodSeconds: 30
+          volumeMounts:
+            - name: model-cache
+              mountPath: /root/.cache/huggingface
+      volumes:
+        - name: model-cache
+          persistentVolumeClaim:
+            claimName: vllm-model-cache

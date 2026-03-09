@@ -1,0 +1,19 @@
+# Resilience4j for vLLM generation (Stage 20)
+# Activate profile 'llm' or merge into main application.yml when using libs:llm
+resilience4j:
+  circuitbreaker:
+    instances:
+      vllm:
+        sliding-window-size: 10
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 60s
+        slow-call-rate-threshold: 80
+        slow-call-duration-threshold: 120s
+  retry:
+    instances:
+      vllm:
+        max-attempts: 2
+        wait-duration: 2s
+        retry-exceptions:
+          - org.springframework.web.client.ResourceAccessException
+          - java.net.SocketTimeoutException

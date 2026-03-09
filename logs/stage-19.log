@@ -1,0 +1,46 @@
+==============================================================================
+STAGE 19 — Flow Candidate Builder — VERIFICATION REPORT
+Date: 2026-03-07
+==============================================================================
+
+Stage 19 sign-off requires all of stages 1–19 to pass. Run: make verify
+
+0. CUMULATIVE OUTPUT — STAGES 1–18
+------------------------------------------------------------------------------
+
+---------- STAGES 1–17 ----------
+  (See stage-18.log for full output.)
+  Result:               PASS
+
+---------- STAGE 18 OUTPUT ----------
+  Module:              libs/retrieval
+  Hybrid retrieval (vector + BM25 + graph → RRF → rerank)
+  Result:               PASS
+
+1. MODULE & BUILD
+------------------------------------------------------------------------------
+  Module:              libs/flow-builder
+  Gradle build:        BUILD SUCCESSFUL
+  Compile Java:        PASS
+  Compile Test Java:   PASS
+  Dependencies:        libs:common, libs:code-parser, libs:graph, libs:retrieval, libs:pattern-mining, libs:anomaly, spring-boot-starter-actuator
+  test:                excludes @Tag("integration")
+
+2. SUPPORTING CHANGES (libs/graph)
+------------------------------------------------------------------------------
+  Neo4jGraphQueryService:  ChainNode(serviceName, httpMethod, path, methodName); findEntryPointServices() — services with endpoint and no incoming CALLS_HTTP; getCallChainsFrom(entry, maxDepth) — variable-length CALLS_HTTP path, returns List<List<ChainNode>>; findKafkaTopicsWithConnections() — KafkaTopic with PRODUCES_TO/CONSUMES_FROM, returns name, producers, consumers.
+
+3. IMPLEMENTATION SUMMARY
+------------------------------------------------------------------------------
+  Models:               FlowCandidate(candidateId, snapshotId, flowName, flowType, steps, involvedServices, evidence, confidenceScore, complexity); FlowType SYNC_REQUEST, ASYNC_EVENT, MIXED, BATCH_PROCESS, ERROR_HANDLING; FlowComplexity LOW, MEDIUM, HIGH, VERY_HIGH. FlowStep(order, serviceName, action, stepType, classFqn, methodName, kafkaTopic, annotations, reactiveComplexity, errorHandling); StepType HTTP_ENDPOINT, HTTP_CLIENT_CALL, KAFKA_*. FlowEvidence(codeSnippets, logPatterns, graphPaths, sequencePatterns, relatedAnomalies, topologyContext); FlowEvidence.empty().
+  FlowCandidateBuilder:  buildCandidates(snapshotId): buildHttpFlows (findEntryPointServices, getCallChainsFrom, chainNodeToFlowStep, ≥2 steps), buildKafkaFlows (findKafkaTopicsWithConnections, PRODUCE/CONSUME steps), buildErrorFlows/buildPatternFlows (stub empty); mergeOverlappingFlows (70% service overlap); enrichWithEvidence (single batched retrieval.retrieve per candidate, combined query from steps); scoreConfidence (code 0.1 cap 0.4, log 0.05 cap 0.2, sequence 0.15 cap 0.3, graphPaths +0.1); minio.putJson evidence/flow-candidates/{snapshotId}.json; counter flowforge.flow.candidates.built.
+
+4. UNIT TESTS
+------------------------------------------------------------------------------
+  FlowCandidateBuilderTest:  buildHttpFlows_createsFlowFromCallChain; buildKafkaFlows_createsAsyncEventFlow; buildHttpFlows_skipsSingleStepChains; mergeOverlappingFlows_deduplicatesIdenticalServiceChains; enrichWithEvidence_usesBatchedQuery_notPerStep; buildCandidates_storesEvidenceInMinio. All passing.
+  FlowScoringTest:           scoreConfidence_maxesAtOne; scoreConfidence_zeroEvidence_givesZeroScore; scoreConfidence_codeSnippetsCappedAtPointFour. All passing.
+  FlowComplexityTest:        veryHigh_whenFiveOrMoreServicesInvolved; veryHigh_whenReactiveAndAsync; medium_whenTwoServicesNoAsync; low_whenSingleService. All passing.
+
+5. RESULT
+------------------------------------------------------------------------------
+  Result: PASS
