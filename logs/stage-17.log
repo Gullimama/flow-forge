@@ -1,0 +1,53 @@
+==============================================================================
+STAGE 17 — Cross-Encoder Reranker (TEI Reranker API) — VERIFICATION REPORT
+Date: 2026-03-07
+==============================================================================
+
+Stage 17 sign-off requires all of stages 1–17 to pass. Run: make verify
+
+0. CUMULATIVE OUTPUT — STAGES 1–16
+------------------------------------------------------------------------------
+
+---------- STAGES 1–15 ----------
+  (See stage-16.log for full output.)
+  Result:               PASS
+
+---------- STAGE 16 OUTPUT ----------
+  Module:              libs/embedding
+  Log embedding pipeline, TEI-log (e5-large-v2), evidence/embeddings/log/{snapshotId}.json
+  Result:               PASS
+
+1. MODULE & BUILD
+------------------------------------------------------------------------------
+  Module:              libs/reranker
+  Gradle build:        BUILD SUCCESSFUL
+  Compile Java:        PASS
+  Compile Test Java:   PASS
+  Dependencies:        libs:common, spring-boot-starter-web, spring-boot-starter-actuator, spring-ai-openai, resilience4j-spring-boot3, resilience4j-circuitbreaker, resilience4j-retry
+  test:                excludes @Tag("integration")
+
+2. K8S / ARGOCD
+------------------------------------------------------------------------------
+  k8s/argocd/apps/tei-reranker.yaml:       ArgoCD Application, sync-wave 4, path k8s/ml-serving/tei-reranker, namespace flowforge-ml
+  k8s/ml-serving/tei-reranker/kustomization.yaml:  resources pvc, deployment, service
+  k8s/ml-serving/tei-reranker/deployment.yaml:    tei-reranker, image ghcr.io/huggingface/text-embeddings-inference:1.5, model BAAI/bge-reranker-v2-m3, port 8083, GPU nodeSelector/tolerations, readinessProbe /health, model-cache PVC
+  k8s/ml-serving/tei-reranker/service.yaml:      ClusterIP 8083
+  k8s/ml-serving/tei-reranker/pvc.yaml:          tei-reranker-model-cache 20Gi ReadWriteOnce
+
+3. IMPLEMENTATION SUMMARY
+------------------------------------------------------------------------------
+  RerankerConfig:           @Bean("rerankerRestClient") RestClient with baseUrl from flowforge.tei.reranker-url (default http://localhost:8083).
+  CrossEncoderReranker:      POST /rerank with RerankRequest(query, texts, return_text); deserialize List<RerankResult>(index, score, text); sort by score desc, limit topK; timer flowforge.reranker.latency; rerankDocuments() maps Document.getText(), then restores docs with reranker_score in metadata.
+  ResilientReranker:         @CircuitBreaker(name="reranker") @Retry(name="reranker") rerank(); fallbackRerank sorts by metadata "score" (bi-encoder), limit topK.
+  RerankerHealthIndicator:   GET /health on rerankerRestClient; Health.up() withDetail model BAAI/bge-reranker-v2-m3.
+  application-reranker.yml:  resilience4j circuitbreaker (sliding-window 10, failure-rate 50%, wait 30s) and retry (max 3, 500ms, ResourceAccessException).
+
+4. UNIT TESTS
+------------------------------------------------------------------------------
+  CrossEncoderRerankerTest:  rerank_returnsSortedByScoreDescending; rerank_respectsTopKLimit; rerank_emptyInput_returnsEmptyList; rerankDocuments_preservesMetadataAndAddsRerankerScore; rerank_teiReturnsNull_returnsEmptyList. MockRestServiceServer bound to RestClient. All passing.
+  ResilientRerankerTest:     fallback_returnsBiEncoderOrder (reflection on fallbackRerank); rerank_delegatesToCrossEncoder_whenHealthy. All passing.
+  RerankerHealthIndicatorTest: health_returnsUp_whenTeiResponds; health_returnsDown_whenTeiUnreachable. All passing.
+
+5. RESULT
+------------------------------------------------------------------------------
+  Result: PASS

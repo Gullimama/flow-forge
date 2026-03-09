@@ -1,0 +1,30 @@
+image:
+  repository: qdrant/qdrant
+  tag: 1.12.4
+
+resources:
+  requests:
+    cpu: "4"
+    memory: 4Gi
+  limits:
+    cpu: "4"
+    memory: 4Gi
+
+persistence:
+  enabled: true
+  size: 50Gi
+
+service:
+  type: ClusterIP
+  ports:
+    - name: rest
+      port: 6333
+      targetPort: 6333
+      protocol: TCP
+    - name: grpc
+      port: 6334
+      targetPort: 6334
+      protocol: TCP
+
+nodeSelector:
+  agentpool: cpupool

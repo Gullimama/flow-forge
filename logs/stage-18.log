@@ -1,0 +1,51 @@
+==============================================================================
+STAGE 18 — Hybrid GraphRAG Retrieval — VERIFICATION REPORT
+Date: 2026-03-07
+==============================================================================
+
+Stage 18 sign-off requires all of stages 1–18 to pass. Run: make verify
+
+0. CUMULATIVE OUTPUT — STAGES 1–17
+------------------------------------------------------------------------------
+
+---------- STAGES 1–16 ----------
+  (See stage-17.log for full output.)
+  Result:               PASS
+
+---------- STAGE 17 OUTPUT ----------
+  Module:              libs/reranker
+  Cross-encoder reranker (TEI bge-reranker-v2-m3), ResilientReranker, RerankerHealthIndicator
+  Result:               PASS
+
+1. MODULE & BUILD
+------------------------------------------------------------------------------
+  Module:              libs/retrieval
+  Gradle build:        BUILD SUCCESSFUL
+  Compile Java:        PASS
+  Compile Test Java:   PASS
+  Dependencies:        libs:common, libs:vector-store, libs:graph, libs:reranker, spring-boot-starter-actuator, spring-ai-openai
+  test:                excludes @Tag("integration")
+
+2. SUPPORTING CHANGES
+------------------------------------------------------------------------------
+  libs/common (OpenSearchClientWrapper):  ScoredSearchHit(sourceAsMap, score); multiMatchSearchWithScores(indexName, queryText, fields, topK); searchWithScores parses _score from hits.
+  libs/graph (Neo4jGraphQueryService):     searchEndpoints(String query) — Cypher match Endpoint by path/method/methodName CONTAINS query, limit 50.
+
+3. IMPLEMENTATION SUMMARY
+------------------------------------------------------------------------------
+  Models:               RetrievalRequest(snapshotId, query, scope, topK, serviceName, graphHops); RetrievalScope CODE, LOGS, BOTH. RankedDocument(content, score, DocumentSource, metadata); DocumentSource VECTOR_CODE, VECTOR_LOG, BM25_CODE, BM25_LOG, GRAPH. RetrievalResult(query, documents, metadata). RetrievalMetadata(vectorCandidates, bm25Candidates, graphCandidates, afterFusion, afterReranking, latencyMs).
+  VectorRetriever:       retrieveCode/retrieveLogs; logs use "query: " prefix for E5; map Document to RankedDocument (distance/score from metadata).
+  BM25Retriever:         retrieveCode (index code-artifacts, fields content, class_fqn, method_name, annotations); retrieveLogs (index runtime-events, fields template, raw_message, exception_class); uses multiMatchSearchWithScores, ScoredSearchHit.
+  GraphRetriever:        service neighborhood (graphHops), searchEndpoints(query), findComplexReactiveMethods(); formatGraphContext label: [values].
+  ReciprocalRankFusion:  K=60; contentKey from content_hash or truncated content; fuse ranked lists, RRF score sum 1/(K+rank+1); output with rrf_score in metadata.
+  HybridRetrievalService: Parallel retrieval via ExecutorService (virtual threads) + CompletableFuture; scope CODE skips log retrievers; fuse(vectorCode, vectorLog, bm25Code, bm25Log, graphDocs); topCandidates = fused limit topK*2; rerank with original_source in metadata; resolveSource(metadata); timer flowforge.retrieval.hybrid.latency.
+
+4. UNIT TESTS
+------------------------------------------------------------------------------
+  ReciprocalRankFusionTest:  fuse_singleList_preservesOriginalOrder; fuse_duplicateAcrossLists_getsBoostedScore; fuse_emptyLists_returnsEmpty; fuse_rrfScoreFormula_isCorrect; fuse_fiveSourceLists_deduplicatesCorrectly. All passing.
+  VectorRetrieverTest:       retrieveLogs_prependsQueryPrefixForE5; retrieveCode_mapsDocumentsToRankedDocumentWithVectorCodeSource; retrieveCode_logsScope_returnsEmpty. All passing.
+  HybridRetrievalServiceTest: retrieve_codeScope_doesNotQueryLogRetrievers; retrieve_populatesMetadataWithCandidateCounts; resolveSource_handlesStringAndEnumValues. All passing.
+
+5. RESULT
+------------------------------------------------------------------------------
+  Result: PASS

@@ -65,6 +65,29 @@ public class Neo4jGraphQueryService {
         }
     }
 
+    /** Search endpoints by query text (path or method name). */
+    public List<Map<String, Object>> searchEndpoints(String query) {
+        if (query == null || query.isBlank()) {
+            return List.of();
+        }
+        try (Session session = driver.session()) {
+            return session.executeRead(tx -> {
+                var result = tx.run("""
+                    MATCH (s:Service)-[:CONTAINS_CLASS]->(c:Class)
+                          -[:HAS_METHOD]->(m:Method)-[:EXPOSES_ENDPOINT]->(e:Endpoint)
+                    WHERE toLower(toString(e.httpPath)) CONTAINS toLower($q)
+                       OR toLower(toString(e.httpMethod)) CONTAINS toLower($q)
+                       OR toLower(m.name) CONTAINS toLower($q)
+                    RETURN s.name AS service, e.httpMethod AS method, e.httpPath AS path,
+                           c.fqn AS className, m.name AS methodName
+                    LIMIT 50
+                    """,
+                    Map.of("q", query.trim()));
+                return result.list(Record::asMap);
+            });
+        }
+    }
+
     /** Find all reactive complex methods across all services. */
     public List<Map<String, Object>> findComplexReactiveMethods() {
         try (Session session = driver.session()) {

@@ -1,0 +1,54 @@
+==============================================================================
+STAGE 16 — Log Embedding Pipeline (Spring AI + TEI) — VERIFICATION REPORT
+Date: 2026-03-07
+==============================================================================
+
+Stage 16 sign-off requires all of stages 1–16 to pass. Run: make verify
+
+0. CUMULATIVE OUTPUT — STAGES 1–15
+------------------------------------------------------------------------------
+
+---------- STAGES 1–14 ----------
+  (See stage-15.log for full output.)
+  Result:               PASS
+
+---------- STAGE 15 OUTPUT ----------
+  Module:              libs/embedding
+  Code embedding pipeline, TEI-code (codesage/codesage-large), evidence/embeddings/code/{snapshotId}.json
+  Result:               PASS
+
+1. MODULE & BUILD
+------------------------------------------------------------------------------
+  Module:              libs/embedding
+  Gradle build:        BUILD SUCCESSFUL
+  Compile Java:        PASS
+  Compile Test Java:   PASS
+  Dependencies:        libs:common, libs:log-parser, libs:vector-store, spring-ai-openai, spring-boot-starter-actuator, spring-boot-starter-web
+  test:                excludes @Tag("integration")
+
+2. K8S / ARGOCD
+------------------------------------------------------------------------------
+  k8s/argocd/apps/tei-log.yaml:       ArgoCD Application, sync-wave 4, path k8s/ml-serving/tei-log, namespace flowforge-ml
+  k8s/ml-serving/tei-log/kustomization.yaml:  resources pvc, deployment, service
+  k8s/ml-serving/tei-log/deployment.yaml:    tei-log, image ghcr.io/huggingface/text-embeddings-inference:1.5, model intfloat/e5-large-v2, port 8082, GPU nodeSelector/tolerations, readinessProbe /health, model-cache PVC
+  k8s/ml-serving/tei-log/service.yaml:       ClusterIP 8082
+  k8s/ml-serving/tei-log/pvc.yaml:           tei-log-model-cache 20Gi ReadWriteOnce
+
+3. IMPLEMENTATION SUMMARY
+------------------------------------------------------------------------------
+  LogEmbeddingTextBuilder:  buildPassageText(ParsedLogEvent) — E5 "passage: [service] SEVERITY: template | exception: ..."; buildQueryText(String); buildTemplateText(serviceName, DrainParser.LogCluster) and overload for StoredDrainCluster. StoredDrainCluster(clusterId, template, matchCount).
+  LogEmbeddingService:     embedSnapshot(snapshotId): fetch drain clusters from evidence bucket key drain-clusters/{snapshotId}.json (list of clusterId, template, matchCount); fetch log events from OpenSearch index runtime-events (term batch_id, searchPaginated 10k); build templateIdToService from events; stratified sampling (all ERROR/FATAL, sample non-errors by service up to MAX_EVENTS 50k); batch size 128; vectorStoreService.addLogDocuments(batch); timer flowforge.embedding.log.batch; minio.putJson evidence/embeddings/log/{snapshotId}.json LogEmbeddingStats; counter flowforge.embedding.log.total; return LogEmbeddingResult.
+  DTOs:                    LogEmbeddingResult(templatesEmbedded, eventsEmbedded, dimensions), LogEmbeddingStats(snapshotId, templates, events, dimensions, model).
+
+4. UNIT TESTS
+------------------------------------------------------------------------------
+  LogEmbeddingTextBuilderTest:  passage prefix; service in brackets; severity/template; exception; truncation; query prefix; template text (Drain cluster and StoredDrainCluster). All passing.
+  LogEmbeddingServiceTest:      stratifiedSampling_keepsAllErrorEvents; stratifiedSampling_samplesAcrossServices; embedSnapshot_storesStatsInMinio; embedSnapshot_batchesByConfiguredSize. All passing.
+
+5. INTEGRATION TEST
+------------------------------------------------------------------------------
+  Optional per guide: WireMock for TEI-log + optional Testcontainers Qdrant. Not added (same Spring AI / vector-store classpath considerations as Stage 15).
+
+6. RESULT
+------------------------------------------------------------------------------
+  Result: PASS

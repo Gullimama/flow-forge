@@ -1,0 +1,68 @@
+==============================================================================
+STAGE 14 — Qdrant Vector Store (Spring AI VectorStore) — VERIFICATION REPORT
+Date: 2026-03-07
+==============================================================================
+
+Stage 14 sign-off requires all of stages 1–14 to pass. Run: make verify
+
+0. CUMULATIVE OUTPUT — STAGES 1–13
+------------------------------------------------------------------------------
+
+---------- STAGES 1–12 ----------
+  (See stage-12.log for full output.)
+  Result:               PASS
+
+---------- STAGE 13 OUTPUT ----------
+  Module:              libs/pattern-mining
+  Gradle build:        BUILD SUCCESSFUL
+  CallSequenceExtractor, SequencePatternMiner, PatternAnalyzer, PatternMiningService
+  Unit tests:          CallSequenceExtractorTest, SequencePatternMinerTest, PatternAnalyzerTest
+  Integration test:   PatternMiningServiceIntegrationTest
+  Result:               PASS
+
+1. MODULE & BUILD
+------------------------------------------------------------------------------
+  Module:              libs/vector-store
+  Gradle build:        BUILD SUCCESSFUL
+  Compile Java:        PASS
+  Compile Test Java:   PASS
+  Dependencies:        libs:common, spring-ai-qdrant-store:1.0.0, io.qdrant:client:1.11.0, spring-boot-starter-actuator
+  test:                excludes @Tag("integration")
+  vectorStoreIntegrationTest:  includeTags("integration") — requires Docker (Testcontainers Qdrant)
+
+2. K8S / ARGOCD
+------------------------------------------------------------------------------
+  k8s/argocd/apps/qdrant.yaml:    ArgoCD Application, sync-wave 2, flowforge-infra, Helm chart qdrant 0.13.1
+  k8s/infrastructure/qdrant/values.yaml:  image 1.12.4, resources 4 CPU / 4Gi, persistence 50Gi, ports 6333/6334, nodeSelector cpupool
+
+3. IMPLEMENTATION SUMMARY
+------------------------------------------------------------------------------
+  QdrantConfig:          QdrantClient from QdrantGrpcClient.newBuilder(host, port, false).build();
+                          StubEmbeddingModel (1024-dim) @ConditionalOnMissingBean for codeEmbeddingModel, logEmbeddingModel;
+                          codeVectorStore / logVectorStore beans (QdrantVectorStore, collections code-embeddings, log-embeddings, initializeSchema true).
+  QdrantCollectionInitializer:  ApplicationRunner; ensureCollection(code-embeddings, log-embeddings, config-embeddings) 1024 dim, Cosine;
+                                createPayloadIndexAsync snapshot_id, service_name (Keyword).
+  VectorStoreService:    addCodeDocuments / addLogDocuments (timer flowforge.vectorstore.*.add);
+                         searchCode(query, topK, snapshotId) with filterExpression snapshot_id, similarityThreshold 0.5;
+                         searchLogs(query, topK, snapshotId, Optional serviceName) with snapshot_id and optional service_name filter;
+                         deleteBySnapshot(snapshotId) via qdrantClient.deleteAsync(Filter) on both collections.
+  QdrantHealthIndicator: listCollectionsAsync().get(); Health.up() with collections count, Health.down(e).
+
+4. UNIT TESTS
+------------------------------------------------------------------------------
+  VectorStoreServiceTest:  addCodeDocuments/addLogDocuments delegate; searchCode builds filter, topK, threshold;
+                            searchLogs with/without serviceName; deleteBySnapshot deletes from both collections.
+  QdrantCollectionInitializerTest:  run existingCollection skipsCreation; run missingCollection createsWithCorrectDimension (1024, Cosine);
+                                     run createsPayloadIndexesAfterCollectionCreation (atLeast 6 createPayloadIndexAsync).
+  QdrantHealthIndicatorTest:  health_qdrantReachable_returnsUp (collections count); health_qdrantDown_returnsDown.
+
+5. INTEGRATION TEST (@Tag("integration"))
+------------------------------------------------------------------------------
+  VectorStoreServiceIntegrationTest:  Testcontainers qdrant/qdrant:1.12.4, @DynamicPropertySource flowforge.qdrant.host/port;
+                                      addAndSearchCodeDocuments_roundTrip; searchLogs_filteredByServiceName;
+                                      deleteBySnapshot_removesAllDocumentsForSnapshot; searchCode_belowSimilarityThreshold_returnsNoResults.
+  Note: Requires Docker; if ContainerFetchException, run with Docker available or skip integration task.
+
+6. RESULT
+------------------------------------------------------------------------------
+  Result: PASS

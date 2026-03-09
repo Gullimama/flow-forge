@@ -1,0 +1,30 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: qdrant
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: flowforge
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: flowforge-infra
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+  sources:
+    - repoURL: https://qdrant.github.io/qdrant-helm
+      chart: qdrant
+      targetRevision: 0.13.1
+      helm:
+        valueFiles:
+          - $values/k8s/infrastructure/qdrant/values.yaml
+    - repoURL: https://github.com/tesco/flow-forge.git
+      targetRevision: main
+      ref: values

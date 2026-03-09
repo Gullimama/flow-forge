@@ -93,9 +93,42 @@ public class OpenSearchClientWrapper {
      */
     @SuppressWarnings("unchecked")
     public SearchResult search(String indexName, Map<String, Object> query, int size) throws IOException {
-        String resolved = resolveIndexName(indexName);
         Map<String, Object> body = new java.util.HashMap<>(query);
         body.put("size", size);
+        return searchWithBody(indexName, body);
+    }
+
+    /**
+     * Paginated search: full request body (query, size, sort, search_after).
+     * Returns hits with sort values for search_after pagination.
+     */
+    @SuppressWarnings("unchecked")
+    public SearchResultWithSort searchPaginated(String indexName, Map<String, Object> requestBody) throws IOException {
+        String resolved = resolveIndexName(indexName);
+        String bodyJson = objectMapper.writeValueAsString(requestBody);
+        Request request = new Request("POST", "/" + resolved + "/_search");
+        request.setJsonEntity(bodyJson);
+        Response response = restClient.performRequest(request);
+        String responseBody = response.getEntity() != null
+            ? new String(response.getEntity().getContent().readAllBytes())
+            : "{}";
+        Map<String, Object> parsed = objectMapper.readValue(responseBody, Map.class);
+        Map<String, Object> hitsMap = (Map<String, Object>) parsed.getOrDefault("hits", Map.of());
+        List<Map<String, Object>> rawHits = (List<Map<String, Object>>) hitsMap.getOrDefault("hits", List.of());
+        List<SearchHitWithSort> withSortValues = rawHits.stream()
+            .map(raw -> {
+                Map<String, Object> source = (Map<String, Object>) raw.getOrDefault("_source", Map.of());
+                List<?> sortList = (List<?>) raw.getOrDefault("sort", List.of());
+                Object[] sortValues = sortList.toArray(new Object[0]);
+                return new SearchHitWithSort(source, sortValues);
+            })
+            .toList();
+        return new SearchResultWithSort(withSortValues);
+    }
+
+    @SuppressWarnings("unchecked")
+    private SearchResult searchWithBody(String indexName, Map<String, Object> body) throws IOException {
+        String resolved = resolveIndexName(indexName);
         String bodyJson = objectMapper.writeValueAsString(body);
         Request request = new Request("POST", "/" + resolved + "/_search");
         request.setJsonEntity(bodyJson);
@@ -126,6 +159,46 @@ public class OpenSearchClientWrapper {
             )
         );
         return search(indexName, query, topK).hits();
+    }
+
+    /**
+     * Multi-match search returning hits with BM25 scores for reranking/fusion.
+     */
+    public List<ScoredSearchHit> multiMatchSearchWithScores(String indexName, String queryText, List<String> fields, int topK) throws IOException {
+        Map<String, Object> query = Map.of(
+            "query", Map.of(
+                "multi_match", Map.of(
+                    "query", queryText,
+                    "fields", fields
+                )
+            )
+        );
+        return searchWithScores(indexName, query, topK);
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<ScoredSearchHit> searchWithScores(String indexName, Map<String, Object> query, int size) throws IOException {
+        Map<String, Object> body = new java.util.HashMap<>(query);
+        body.put("size", size);
+        String resolved = resolveIndexName(indexName);
+        String bodyJson = objectMapper.writeValueAsString(body);
+        Request request = new Request("POST", "/" + resolved + "/_search");
+        request.setJsonEntity(bodyJson);
+        Response response = restClient.performRequest(request);
+        String responseBody = response.getEntity() != null
+            ? new String(response.getEntity().getContent().readAllBytes())
+            : "{}";
+        Map<String, Object> parsed = objectMapper.readValue(responseBody, Map.class);
+        Map<String, Object> hitsMap = (Map<String, Object>) parsed.getOrDefault("hits", Map.of());
+        List<Map<String, Object>> hitList = (List<Map<String, Object>>) hitsMap.getOrDefault("hits", List.of());
+        return hitList.stream()
+            .map(h -> {
+                Map<String, Object> source = (Map<String, Object>) h.getOrDefault("_source", Map.of());
+                Object scoreObj = h.get("_score");
+                double score = scoreObj instanceof Number n ? n.doubleValue() : 0.0;
+                return new ScoredSearchHit(source != null ? source : Map.of(), score);
+            })
+            .toList();
     }
 
     /**
@@ -198,5 +271,28 @@ public class OpenSearchClientWrapper {
         }
     }
 
+    /** Search hit with BM25 score for retrieval fusion. */
+    public record ScoredSearchHit(Map<String, Object> sourceAsMap, double score) {
+        public Map<String, Object> getSourceAsMap() {
+            return sourceAsMap != null ? sourceAsMap : Map.of();
+        }
+    }
+
     public record SearchResult(List<SearchHit> hits) {}
+
+    /** Hit with sort values for search_after pagination. */
+    public record SearchHitWithSort(Map<String, Object> sourceAsMap, Object[] sortValues) {
+        public Map<String, Object> getSourceAsMap() {
+            return sourceAsMap != null ? sourceAsMap : Map.of();
+        }
+        public Object[] getSortValues() {
+            return sortValues != null ? sortValues : new Object[0];
+        }
+    }
+
+    public record SearchResultWithSort(List<SearchHitWithSort> hits) {
+        public List<SearchHitWithSort> getHits() {
+            return hits != null ? hits : List.of();
+        }
+    }
 }

@@ -26,6 +26,7 @@ spring-boot-starter-data-jpa = { module = "org.springframework.boot:spring-boot-
 spring-boot-starter-actuator = { module = "org.springframework.boot:spring-boot-starter-actuator" }
 spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test" }
 spring-ai-openai-spring-boot-starter = { module = "org.springframework.ai:spring-ai-openai-spring-boot-starter", version.ref = "spring-ai" }
+spring-ai-openai = { module = "org.springframework.ai:spring-ai-openai", version.ref = "spring-ai" }
 spring-ai-qdrant-store = { module = "org.springframework.ai:spring-ai-qdrant-store-spring-boot-starter", version.ref = "spring-ai" }
 spring-data-neo4j = { module = "org.springframework.boot:spring-boot-starter-data-neo4j" }
 minio = { module = "io.minio:minio", version.ref = "minio" }
@@ -40,6 +41,8 @@ djl-onnxruntime = { module = "ai.djl.onnxruntime:onnxruntime-engine", version.re
 smile-core = { module = "com.github.haifengl:smile-core", version.ref = "smile" }
 freemarker = { module = "org.freemarker:freemarker", version.ref = "freemarker" }
 resilience4j-spring-boot3 = { module = "io.github.resilience4j:resilience4j-spring-boot3", version.ref = "resilience4j" }
+resilience4j-circuitbreaker = { module = "io.github.resilience4j:resilience4j-circuitbreaker", version.ref = "resilience4j" }
+resilience4j-retry = { module = "io.github.resilience4j:resilience4j-retry", version.ref = "resilience4j" }
 fabric8-kubernetes-client = { module = "io.fabric8:kubernetes-client", version.ref = "fabric8" }
 flyway-core = { module = "org.flywaydb:flyway-core", version.ref = "flyway" }
 flyway-postgresql = { module = "org.flywaydb:flyway-database-postgresql", version.ref = "flyway" }

@@ -1,0 +1,132 @@
+==============================================================================
+STAGE 13 — Sequential Pattern Mining (SPMF PrefixSpan) — VERIFICATION REPORT
+Date: 2026-03-07
+==============================================================================
+
+Stage 13 sign-off requires all of stages 1–13 to pass. Run: make verify
+
+0. CUMULATIVE OUTPUT — STAGES 1–12
+------------------------------------------------------------------------------
+
+---------- STAGE 1 OUTPUT ----------
+  Directory structure:  31/31 PASS
+  Required files:       34/34 PASS
+  Gradle build:         BUILD SUCCESSFUL
+  Unit tests:           21 tests, 0 failures
+  Result:               PASS
+
+---------- STAGE 2 OUTPUT ----------
+  Required files:       18/18 PASS
+  Gradle build:         BUILD SUCCESSFUL
+  Unit tests:            7 tests, 0 failures
+  Integration tests:     7 tests, 0 failures (PostgreSQL)
+  Result:               PASS
+
+---------- STAGE 3 OUTPUT ----------
+  Required files:       10/10 PASS
+  Gradle build:         BUILD SUCCESSFUL
+  Unit tests:            6 tests, 0 failures (MinIO client, health indicator)
+  Integration tests:     8 tests, 0 failures (MinIO Testcontainers)
+  Result:               PASS
+
+---------- STAGE 4 OUTPUT ----------
+  Required files:       35/35 PASS (services/api, controllers, DTOs, K8s)
+  Gradle build:         BUILD SUCCESSFUL
+  Unit tests:            API 10, common 21 — 31 total, 0 failures
+  Integration tests:     API 3, common 15 — 18 total, 0 failures
+  Result:               PASS
+
+---------- STAGE 5 OUTPUT ----------
+  Required files:       12/12 PASS (GitHub snapshot ingest)
+  Gradle build:         BUILD SUCCESSFUL
+  Unit tests:            15 tests, 0 failures (ingest)
+  Integration tests:     2 tests, 0 failures (GitHubSnapshotWorker)
+  Result:               PASS
+
+---------- STAGE 6 OUTPUT ----------
+  Required files:       12/12 PASS (Azure Blob ingest, zip extraction)
+  Unit tests:            7 tests, 0 failures (ZipExtractor, BlobIngestionWorker)
+  Result:               PASS
+
+---------- STAGE 7 OUTPUT ----------
+  Required files:       9/9 PASS (OpenSearch client, schemas, K8s)
+  Gradle build:         BUILD SUCCESSFUL
+  OpenSearchClientWrapper, ensureIndex, bulkIndex, search, getDocCount, healthCheck
+  Result:               PASS
+
+---------- STAGE 8 OUTPUT ----------
+  Module:              libs/code-parser
+  Gradle build:        BUILD SUCCESSFUL
+  Unit tests:          17 tests, 0 failures
+  Result:               PASS
+
+---------- STAGE 9 OUTPUT ----------
+  Module:              libs/log-parser
+  Gradle build:        BUILD SUCCESSFUL
+  Unit tests:          18 tests, 0 failures
+  LogParsingService, DrainParser, LogLineParser, TraceContextExtractor
+  Result:               PASS
+
+---------- STAGE 10 OUTPUT ----------
+  Module:              libs/topology
+  Gradle build:        BUILD SUCCESSFUL
+  TopologyEnrichmentService, config-artifacts index, MinIO evidence/topology
+  Result:               PASS
+
+---------- STAGE 11 OUTPUT ----------
+  Module:              libs/graph
+  Gradle build:        BUILD SUCCESSFUL
+  Neo4jGraphBuilder, Neo4jGraphQueryService
+  Result:               PASS
+
+---------- STAGE 12 OUTPUT ----------
+  Module:              libs/anomaly
+  Gradle build:        BUILD SUCCESSFUL
+  LogFeatureEngineer, AnomalyDetectorModel, AnomalyEpisodeBuilder, AnomalyDetectionService
+  Unit tests:          LogFeatureEngineerTest, AnomalyDetectorModelTest, AnomalyEpisodeBuilderTest
+  Integration test:    AnomalyDetectionServiceIntegrationTest
+  Result:               PASS
+
+1. MODULE & BUILD
+------------------------------------------------------------------------------
+  Module:              libs/pattern-mining
+  Gradle build:        BUILD SUCCESSFUL
+  Compile Java:        PASS
+  Compile Test Java:   PASS
+  Dependencies:        libs:common, libs:log-parser, libs:topology; SPMF JAR optional (runtimeOnly when libs/spmf/spmf.jar present)
+  test:                excludes @Tag("integration")
+  patternMiningIntegrationTest:  includeTags("integration")
+
+2. IMPLEMENTATION SUMMARY
+------------------------------------------------------------------------------
+  CallSequenceExtractor:  SequenceItem(serviceName, eventType, detail); encode(itemMap, AtomicInteger);
+                          extractFromTraces(events, topology) — group by traceId, ≥2 events, sort by timestamp, classifyEventType, extractDetail;
+                          extractFromTemporalWindows(events, windowSize) — sort by timestamp, sliding windows, ≥2 events per window.
+  SequencePatternMiner:   mine(sequences, minSupportRatio) — shared encoding (ConcurrentHashMap + AtomicInteger), SPMF format "item -1 ... -2",
+                          runPrefixSpan via reflection (AlgoPrefixSpan) when SPMF on classpath; parseOutputLine "#SUP: count"; decode to DiscoveredPattern;
+                          classifyPatternType: NORMAL_FLOW, ERROR_PROPAGATION, CASCADE_FAILURE, ASYNC_FANOUT, RETRY_PATTERN (3+ consecutive same item).
+  PatternAnalyzer:       analyzePatterns(patterns, topology) → EnrichedPattern(pattern, involvedServices, crossesServiceBoundary, hasErrors, involvesKafka, description);
+                          generatePatternDescription "svc::EVENT(detail) → ...".
+  PatternMiningService:  minePatterns(snapshotId, events, topology) — extractFromTraces + extractFromTemporalWindows(30s), merge sequences,
+                          miner.mine(MIN_SUPPORT 0.03), analyzer.analyzePatterns, minio.putJson evidence/patterns/{snapshotId}.json, metrics flowforge.patterns.discovered/error.
+  PatternMiningConfig:   @Bean SequencePatternMiner(minSupport, maxPatternLength) from flowforge.pattern-mining.* properties.
+
+3. UNIT TESTS
+------------------------------------------------------------------------------
+  CallSequenceExtractorTest:  extractFromTraces groupsByTraceId, filtersOutEventsWithoutTraceId, singleEventTrace excluded, sortsEventsByTimestamp;
+                              extractFromTemporalWindows splitsIntoWindows, lessThanTwoEvents returnsEmpty;
+                              sequenceItemEncode threadSafe noDuplicateIds.
+  SequencePatternMinerTest:  mine emptyInput returnsEmptyList; mine resultsSortedBySupportDescending;
+                             mine_repeatedPattern_discoveredWithHighSupport / mine_decodesPatternsBackToOriginalItems (pass when SPMF JAR present).
+  PatternAnalyzerTest:       analyzePatterns errorPropagation identifiedCorrectly, kafkaFanout flaggedAsKafkaInvolved,
+                             singleServicePattern notCrossService, generatePatternDescription readableArrowFormat, retryPattern classifiedCorrectly.
+
+4. INTEGRATION TEST (@Tag("integration"))
+------------------------------------------------------------------------------
+  PatternMiningServiceIntegrationTest: @SpringBootTest(TestConfig), @MockitoBean OpenSearch/MinIO, @ComponentScan(com.flowforge.patterns);
+  minePatterns fullPipeline discoversAndStoresPatterns → traceSequences > 0, verify minio.putJson evidence/patterns/{snapshotId};
+  minePatterns withErrorPropagation detectsErrorPatterns → verify putJson evidence/patterns/.
+
+5. RESULT
+------------------------------------------------------------------------------
+  Result: PASS
