@@ -6,9 +6,7 @@ image:
 auth:
   database: flowforge
   username: flowforge
-  existingSecret: flowforge-postgresql-credentials
-  secretKeys:
-    userPasswordKey: password
+  password: flowforge
 
 primary:
   resources:
@@ -34,8 +32,7 @@ primary:
     initialDelaySeconds: 30
     periodSeconds: 10
     timeoutSeconds: 5
-  initdb:
-    scriptsConfigMap: flowforge-initdb
+  initdb: {}
 
 metrics:
   enabled: true
