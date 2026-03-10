@@ -4,12 +4,15 @@ import com.flowforge.api.dto.JobResponse;
 import com.flowforge.api.dto.ResearchRunRequest;
 import com.flowforge.api.dto.ResearchRunResponse;
 import com.flowforge.api.service.JobDispatcher;
+import com.flowforge.common.client.MinioStorageClient;
 import com.flowforge.common.entity.ResearchRunEntity;
 import com.flowforge.common.service.MetadataService;
 import jakarta.validation.Valid;
 import java.util.Map;
 import java.util.UUID;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,12 +26,19 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/research")
 public class ResearchController {
 
+    private static final String OUTPUT_BUCKET = "output";
+    private static final String RESEARCH_OUTPUT_KEY_TEMPLATE = "system-flows-research/%s/system-flows-research.md";
+
     private final MetadataService metadataService;
     private final JobDispatcher jobDispatcher;
+    private final MinioStorageClient minioStorageClient;
 
-    public ResearchController(MetadataService metadataService, JobDispatcher jobDispatcher) {
+    public ResearchController(MetadataService metadataService,
+                              JobDispatcher jobDispatcher,
+                              MinioStorageClient minioStorageClient) {
         this.metadataService = metadataService;
         this.jobDispatcher = jobDispatcher;
+        this.minioStorageClient = minioStorageClient;
     }
 
     @PostMapping("/run")
@@ -56,6 +66,22 @@ public class ResearchController {
             .map(this::toResponse)
             .map(ResponseEntity::ok)
             .orElse(ResponseEntity.notFound().build());
+    }
+
+    /**
+     * Download the research flows markdown document for a snapshot.
+     * Returns the published system-flows-research.md from MinIO (output bucket).
+     */
+    @GetMapping(value = "/output/{snapshotId}", produces = MediaType.TEXT_MARKDOWN_VALUE)
+    public ResponseEntity<String> getResearchOutput(@PathVariable UUID snapshotId) {
+        String key = RESEARCH_OUTPUT_KEY_TEMPLATE.formatted(snapshotId);
+        if (!minioStorageClient.objectExists(OUTPUT_BUCKET, key)) {
+            return ResponseEntity.notFound().build();
+        }
+        String markdown = minioStorageClient.getString(OUTPUT_BUCKET, key);
+        return ResponseEntity.ok()
+            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"system-flows-research.md\"")
+            .body(markdown);
     }
 
     private ResearchRunResponse toResponse(ResearchRunEntity entity) {

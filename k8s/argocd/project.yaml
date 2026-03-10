@@ -6,7 +6,7 @@ metadata:
 spec:
   description: FlowForge research platform
   sourceRepos:
-    - 'https://github.com/tesco/flow-forge.git'
+    - 'https://github.com/Gullimama/flow-forge.git'
     - 'https://charts.bitnami.com/bitnami'
     - 'https://opensearch-project.github.io/helm-charts'
     - 'https://helm.neo4j.com/neo4j'

@@ -14,6 +14,8 @@ spring:
       ddl-auto: validate
   flyway:
     enabled: true
+  main:
+    allow-bean-definition-overriding: true
 
 flowforge:
   dispatch:
@@ -55,6 +57,12 @@ flowforge:
     code-url: http://localhost:8081
     log-url: http://localhost:8082
     reranker-url: http://localhost:8083
+  mlflow:
+    tracking-uri: ${FLOWFORGE_MLFLOW_TRACKING_URI:http://localhost:5000}
+    experiment-name: flowforge-models
+    artifact-location: ${FLOWFORGE_MLFLOW_ARTIFACT_LOCATION:file:./mlruns}
+    timeout: 30s
+    max-retries: 3
 
 management:
   endpoints:

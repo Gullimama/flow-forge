@@ -9,16 +9,15 @@ import org.opensearch.client.RestClientBuilder;
 import org.opensearch.client.json.jackson.JacksonJsonpMapper;
 import org.opensearch.client.opensearch.OpenSearchClient;
 import org.opensearch.client.transport.rest_client.RestClientTransport;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.StringUtils;
 
 /**
  * Configures OpenSearch RestClient and OpenSearchClient from flowforge.opensearch.*.
+ * Loads when FlowForgeProperties is present and flowforge.opensearch.hosts is non-empty.
  */
 @Configuration
-@ConditionalOnProperty(prefix = "flowforge.opensearch", name = "hosts")
 public class OpenSearchConfig {
 
     @Bean
@@ -57,5 +56,13 @@ public class OpenSearchConfig {
     public OpenSearchClient openSearchClient(RestClient restClient) {
         RestClientTransport transport = new RestClientTransport(restClient, new JacksonJsonpMapper());
         return new OpenSearchClient(transport);
+    }
+
+    @Bean
+    public com.flowforge.common.client.OpenSearchClientWrapper openSearchClientWrapper(
+            RestClient openSearchRestClient,
+            OpenSearchClient openSearchClient,
+            FlowForgeProperties props) {
+        return new com.flowforge.common.client.OpenSearchClientWrapper(openSearchRestClient, openSearchClient, props);
     }
 }

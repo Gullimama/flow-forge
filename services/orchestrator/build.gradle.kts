@@ -15,4 +15,6 @@ dependencies {
 
     testImplementation(libs.spring.boot.starter.test)
     testImplementation("org.wiremock:wiremock-standalone:3.9.1")
+
+    runtimeOnly("com.h2database:h2")
 }

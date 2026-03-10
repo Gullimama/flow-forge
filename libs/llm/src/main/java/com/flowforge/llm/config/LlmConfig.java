@@ -2,7 +2,10 @@ package com.flowforge.llm.config;
 
 import com.flowforge.common.config.FlowForgeProperties;
 import io.micrometer.observation.ObservationRegistry;
+import java.util.Collections;
 import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.ai.model.tool.DefaultToolCallingManager;
+import org.springframework.ai.model.tool.ToolCallingManager;
 import org.springframework.ai.ollama.OllamaChatModel;
 import org.springframework.ai.ollama.api.OllamaApi;
 import org.springframework.ai.ollama.api.OllamaOptions;
@@ -10,6 +13,8 @@ import org.springframework.ai.ollama.management.ModelManagementOptions;
 import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.ai.openai.api.OpenAiApi;
+import org.springframework.ai.tool.execution.DefaultToolExecutionExceptionProcessor;
+import org.springframework.ai.tool.resolution.StaticToolCallbackResolver;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -33,7 +38,13 @@ public class LlmConfig {
                 .temperature(0.1)
                 .build();
 
-            return new OllamaChatModel(api, options, null, observationRegistry, ModelManagementOptions.defaults());
+            ToolCallingManager toolCallingManager = DefaultToolCallingManager.builder()
+                .observationRegistry(observationRegistry)
+                .toolCallbackResolver(new StaticToolCallbackResolver(Collections.emptyList()))
+                .toolExecutionExceptionProcessor(new DefaultToolExecutionExceptionProcessor(false))
+                .build();
+
+            return new OllamaChatModel(api, options, toolCallingManager, observationRegistry, ModelManagementOptions.defaults());
         }
 
         String baseUrl = props.vllm() != null && props.vllm().baseUrl() != null && !props.vllm().baseUrl().isBlank()

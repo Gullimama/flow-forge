@@ -10,8 +10,8 @@ metadata:
 spec:
   project: flowforge
   source:
-    repoURL: https://github.com/tesco/flow-forge.git
-    targetRevision: HEAD
+    repoURL: https://github.com/Gullimama/flow-forge.git
+    targetRevision: main
     path: k8s/app/flowforge-api
   destination:
     server: https://kubernetes.default.svc

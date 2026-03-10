@@ -17,14 +17,10 @@ import org.opensearch.client.opensearch.core.CountRequest;
 import org.opensearch.client.json.JsonData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-import org.springframework.stereotype.Component;
-
 /**
  * Thin wrapper around OpenSearch client: ensure index, bulk index, search, delete by query, count, health.
+ * Bean is created by {@link com.flowforge.common.config.OpenSearchConfig} when OpenSearch is configured.
  */
-@Component
-@ConditionalOnBean(OpenSearchClient.class)
 public class OpenSearchClientWrapper {
 
     private static final Logger log = LoggerFactory.getLogger(OpenSearchClientWrapper.class);

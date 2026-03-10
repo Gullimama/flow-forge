@@ -6,6 +6,10 @@ plugins {
 dependencies {
     implementation(project(":libs:common"))
     implementation(project(":libs:ingest"))
+    implementation(project(":libs:flow-builder"))
+    implementation(project(":libs:synthesis"))
+    implementation(project(":libs:publisher"))
+    implementation(project(":libs:mlflow"))
     implementation(libs.spring.boot.starter.web)
     implementation(libs.spring.boot.starter.actuator)
     implementation("jakarta.validation:jakarta.validation-api")

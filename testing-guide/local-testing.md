@@ -156,6 +156,8 @@ Typical approach:
 ./gradlew :services:orchestrator:bootRun --args='--spring.profiles.active=local'
 ```
 
+With the `local` profile, the API listens on **port 9080** by default (to avoid conflict with other apps on 8080). Override with `FLOWFORGE_API_PORT` if needed. Health: `http://localhost:9080/actuator/health`, liveness: `http://localhost:9080/actuator/health/liveness`.
+
 ---
 
 ## 4. End-to-end happy-path scenario
@@ -188,6 +190,14 @@ Once infra and services are up, you can run an end‑to‑end flow:
 7. **Check observability (Stage 30)**  
    - Hit `/actuator/prometheus` on your services and confirm FlowForge metrics (stage duration, LLM tokens, embedding throughput, etc.) are present.  
    - If you choose to run Prometheus/Grafana locally, import `k8s/grafana/flowforge-pipeline-dashboard.json` into Grafana and inspect dashboards.
+
+8. **Get the research flows output (system-flows-research.md)**  
+   - After a research run completes for a snapshot, the markdown is published to MinIO and exposed via the API:
+     - **API** (local port 9080):  
+       `GET /api/v1/research/output/{snapshotId}`  
+       Returns the markdown with `Content-Disposition: attachment; filename="system-flows-research.md"`.  
+       Example: `curl -o system-flows-research.md http://localhost:9080/api/v1/research/output/<snapshot-id>`
+     - **MinIO**: bucket `output`, object key `system-flows-research/{snapshotId}/system-flows-research.md` (and `document.json` in the same prefix).
 
 ---
 

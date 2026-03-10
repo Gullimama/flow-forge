@@ -1,0 +1,18 @@
+# Local profile: use Ollama for ChatModel and in-process dispatch for research
+# Port 9080 avoids conflict with other apps on 8080
+server:
+  port: ${FLOWFORGE_API_PORT:9080}
+
+# Postgres: default 55432 matches docker/docker-compose.yml; use 5432 if using testing-guide compose
+spring:
+  datasource:
+    url: ${FLOWFORGE_POSTGRES_URL:jdbc:postgresql://localhost:55432/flowforge}
+  flyway:
+    enabled: true
+
+flowforge:
+  dispatch:
+    mode: ${FLOWFORGE_DISPATCH_MODE:in-process}
+  ollama:
+    base-url: ${FLOWFORGE_OLLAMA_BASE_URL:http://localhost:11434}
+    chat-model: ${FLOWFORGE_OLLAMA_CHAT_MODEL:llama3.1}
