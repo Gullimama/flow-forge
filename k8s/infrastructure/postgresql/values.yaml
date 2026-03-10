@@ -33,6 +33,4 @@ primary:
   initdb: {}
 
 metrics:
-  enabled: true
-  serviceMonitor:
-    enabled: false
+  enabled: false
