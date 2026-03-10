@@ -19,7 +19,7 @@ primary:
   persistence:
     enabled: true
     size: 50Gi
-    storageClass: managed-csi
+    storageClass: standard
   nodeSelector:
     agentpool: cpupool
   readinessProbe:
