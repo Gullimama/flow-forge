@@ -20,8 +20,6 @@ primary:
     enabled: true
     size: 50Gi
     storageClass: standard
-  nodeSelector:
-    agentpool: cpupool
   readinessProbe:
     enabled: true
     initialDelaySeconds: 10
