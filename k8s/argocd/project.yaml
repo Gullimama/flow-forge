@@ -19,6 +19,8 @@ spec:
   destinations:
     - namespace: 'flowforge*'
       server: https://kubernetes.default.svc
+    - namespace: 'kube-system'
+      server: https://kubernetes.default.svc
     - namespace: 'argo'
       server: https://kubernetes.default.svc
     - namespace: 'argocd'
