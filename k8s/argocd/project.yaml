@@ -42,3 +42,5 @@ spec:
       kind: CustomResourceDefinition
     - group: admissionregistration.k8s.io
       kind: MutatingWebhookConfiguration
+    - group: admissionregistration.k8s.io
+      kind: ValidatingWebhookConfiguration
