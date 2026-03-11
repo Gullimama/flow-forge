@@ -1,4 +1,5 @@
-replicas: 3
+singleNode: true
+replicas: 1
 
 resources:
   requests:
@@ -19,10 +20,8 @@ extraEnvs:
 persistence:
   enabled: true
   size: 100Gi
+  storageClass: standard
 
 service:
   type: ClusterIP
   port: 9200
-
-nodeSelector:
-  agentpool: cpupool
