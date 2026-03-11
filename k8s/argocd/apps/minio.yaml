@@ -10,14 +10,14 @@ metadata:
 spec:
   project: flowforge
   sources:
-    - repoURL: https://charts.bitnami.com/bitnami
+    - repoURL: https://charts.min.io
       chart: minio
-      targetRevision: 14.*
+      targetRevision: 5.4.0
       helm:
         valueFiles:
           - $values/k8s/infrastructure/minio/values.yaml
-    - repoURL: https://github.com/tesco/flow-forge.git
-      targetRevision: HEAD
+    - repoURL: https://github.com/Gullimama/flow-forge.git
+      targetRevision: main
       ref: values
   destination:
     server: https://kubernetes.default.svc

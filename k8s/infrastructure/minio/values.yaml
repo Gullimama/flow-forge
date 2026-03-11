@@ -1,25 +1,29 @@
+# Official MinIO chart (minio/minio) - https://charts.min.io/
 mode: standalone
 
-auth:
-  existingSecret: flowforge-minio-credentials   # keys: root-user, root-password
-  secretKeys:
-    rootUserKey: root-user
-    rootPasswordKey: root-password
+rootUser: flowforge
+rootPassword: flowforge
+
+image:
+  repository: quay.io/minio/minio
+  tag: RELEASE.2024-12-18T13-15-44Z
+  pullPolicy: IfNotPresent
 
 persistence:
   enabled: true
   size: 100Gi
-  storageClass: managed-csi
+  storageClass: standard
 
-defaultBuckets: >-
-  raw-git,
-  raw-logs,
-  parsed-code,
-  parsed-logs,
-  graph-artifacts,
-  research-output,
-  model-artifacts,
-  evidence
+# Buckets to create after install (names only; policy defaults)
+buckets:
+  - name: raw-git
+  - name: raw-logs
+  - name: parsed-code
+  - name: parsed-logs
+  - name: graph-artifacts
+  - name: research-output
+  - name: model-artifacts
+  - name: evidence
 
 resources:
   requests:
@@ -28,21 +32,3 @@ resources:
   limits:
     cpu: "4"
     memory: 8Gi
-
-nodeSelector:
-  agentpool: cpupool
-
-readinessProbe:
-  enabled: true
-  initialDelaySeconds: 10
-  periodSeconds: 10
-livenessProbe:
-  enabled: true
-  initialDelaySeconds: 30
-  periodSeconds: 10
-
-metrics:
-  enabled: true
-  serviceMonitor:
-    enabled: true
-    namespace: flowforge-obs
