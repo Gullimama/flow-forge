@@ -1,0 +1,22 @@
+auth:
+  enabled: true
+  password: flowforge
+
+architecture: standalone
+
+master:
+  persistence:
+    enabled: true
+    storageClass: standard
+    size: 20Gi
+  resources:
+    requests:
+      cpu: "500m"
+      memory: 1Gi
+    limits:
+      cpu: "1"
+      memory: 2Gi
+
+replica:
+  replicaCount: 0
+
