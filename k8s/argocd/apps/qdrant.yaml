@@ -18,13 +18,14 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+      - ServerSideApply=true
   sources:
     - repoURL: https://qdrant.github.io/qdrant-helm
       chart: qdrant
-      targetRevision: 0.13.1
+      targetRevision: 1.16.3
       helm:
         valueFiles:
           - $values/k8s/infrastructure/qdrant/values.yaml
-    - repoURL: https://github.com/tesco/flow-forge.git
+    - repoURL: https://github.com/Gullimama/flow-forge.git
       targetRevision: main
       ref: values
