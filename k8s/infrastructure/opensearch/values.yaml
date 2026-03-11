@@ -19,6 +19,7 @@ persistence:
   enabled: true
   size: 100Gi
   storageClass: standard
+  enableInitChown: false
 
 service:
   type: ClusterIP
