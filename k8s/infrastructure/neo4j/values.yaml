@@ -1,10 +1,13 @@
+# Required for ArgoCD: chart lookups fail when Argo uses helm template
+disableLookups: true
+
 neo4j:
   name: neo4j
   edition: community
-  password:
-    fromExistingSecret:
-      name: neo4j-credentials
-      key: NEO4J_AUTH
+  password: "flowforge"
+  resources:
+    cpu: "4"
+    memory: "8Gi"
 
 image:
   customImage: neo4j:5.25-community
@@ -21,21 +24,13 @@ apoc:
 
 volumes:
   data:
-    mode: defaultStorageClass
-    defaultStorageClass:
+    mode: dynamic
+    dynamic:
+      storageClassName: standard
+      accessModes:
+        - ReadWriteOnce
       requests:
         storage: 50Gi
-
-resources:
-  requests:
-    cpu: "4"
-    memory: 8Gi
-  limits:
-    cpu: "4"
-    memory: 8Gi
-
-nodeSelector:
-  agentpool: cpupool
 
 services:
   neo4j:
