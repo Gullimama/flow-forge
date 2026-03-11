@@ -6,6 +6,7 @@ tempo:
           endpoint: 0.0.0.0:4317
         http:
           endpoint: 0.0.0.0:4318
+  retention: 168h
   storage:
     trace:
       backend: s3
@@ -24,8 +25,6 @@ tempo:
         secretKeyRef:
           name: tempo-minio-credentials
           key: secret-key
-  retention:
-    min_duration: 168h
   resources:
     requests:
       cpu: "500m"

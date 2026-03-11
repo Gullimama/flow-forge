@@ -16,8 +16,8 @@ spec:
       helm:
         valueFiles:
           - $values/k8s/observability/tempo/values.yaml
-    - repoURL: https://github.com/tesco/flow-forge.git
-      targetRevision: HEAD
+    - repoURL: https://github.com/Gullimama/flow-forge.git
+      targetRevision: main
       ref: values
   destination:
     server: https://kubernetes.default.svc
@@ -28,4 +28,5 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+      - ServerSideApply=true
 
