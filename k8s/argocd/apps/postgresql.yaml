@@ -12,7 +12,7 @@ spec:
   sources:
     - repoURL: https://charts.bitnami.com/bitnami
       chart: postgresql
-      targetRevision: 16.*
+      targetRevision: 18.*
       helm:
         valueFiles:
           - $values/k8s/infrastructure/postgresql/values.yaml
