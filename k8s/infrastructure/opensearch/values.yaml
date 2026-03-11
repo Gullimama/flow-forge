@@ -13,9 +13,7 @@ config:
   opensearch.yml: |
     plugins.security.disabled: true
 
-extraEnvs:
-  - name: OPENSEARCH_JAVA_OPTS
-    value: "-Xmx4g -Xms4g"
+opensearchJavaOpts: "-Xmx4g -Xms4g"
 
 persistence:
   enabled: true
