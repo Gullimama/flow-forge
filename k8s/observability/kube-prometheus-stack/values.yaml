@@ -1,9 +1,8 @@
 grafana:
   enabled: true
-  admin:
-    existingSecret: grafana-admin-credentials
-    userKey: admin-user
-    passwordKey: admin-password
+  # Use internal secret rather than requiring a pre-created one
+  adminUser: admin
+  adminPassword: flowforge
   initChownData:
     enabled: false
   sidecar:
@@ -75,11 +74,6 @@ alertmanager:
       limits:
         cpu: "250m"
         memory: 256Mi
-
-# AKS policy: only port 80 allowed for Services
-kube-state-metrics:
-  service:
-    port: 80
 
 prometheus-node-exporter:
   service:

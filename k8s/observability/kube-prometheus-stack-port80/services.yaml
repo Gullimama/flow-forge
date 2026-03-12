@@ -45,3 +45,24 @@ spec:
       port: 80
       targetPort: 9093
 
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: obs-kube-state-metrics
+  namespace: flowforge-obs
+  labels:
+    app.kubernetes.io/name: kube-state-metrics
+    app.kubernetes.io/instance: kube-prometheus-stack
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: kube-state-metrics
+    app.kubernetes.io/instance: kube-prometheus-stack
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80
+      targetPort: 8080
+
