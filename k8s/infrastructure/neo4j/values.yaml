@@ -6,16 +6,16 @@ neo4j:
   edition: community
   password: "flowforge"
   resources:
-    cpu: "1"
-    memory: "2Gi"
+    cpu: "500m"
+    memory: "1Gi"
 
 image:
   customImage: neo4j:5.25-community
 
 config:
-  server.memory.heap.initial_size: "768m"
-  server.memory.heap.max_size: "768m"
-  server.memory.pagecache.size: "256m"
+  server.memory.heap.initial_size: "384m"
+  server.memory.heap.max_size: "384m"
+  server.memory.pagecache.size: "128m"
   server.directories.plugins: /var/lib/neo4j/plugins
   server.security.procedures.unrestricted: "apoc.*"
 
