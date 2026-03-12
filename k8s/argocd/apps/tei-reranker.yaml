@@ -1,25 +1,7 @@
-apiVersion: argoproj.io/v1alpha1
-kind: Application
+apiVersion: v1
+kind: ConfigMap
 metadata:
-  name: flowforge-tei-reranker
+  name: flowforge-tei-reranker-disabled
   namespace: argocd
   annotations:
-    argocd.argoproj.io/sync-wave: "4"
-  finalizers:
-    - resources-finalizer.argocd.argoproj.io
-spec:
-  project: flowforge
-  source:
-    repoURL: https://github.com/Gullimama/flow-forge.git
-    targetRevision: main
-    path: k8s/ml-serving/tei-reranker
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: flowforge-ml
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
-    syncOptions:
-      - CreateNamespace=true
-      - ServerSideApply=true
+    flowforge.io/note: "TEI reranker Application disabled; kept as marker so Argo app-of-apps does not recreate it."

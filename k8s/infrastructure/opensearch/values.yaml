@@ -18,7 +18,7 @@ opensearchJavaOpts: "-Xmx4g -Xms4g"
 persistence:
   enabled: true
   size: 100Gi
-  storageClass: standard
+  storageClass: managed
   enableInitChown: false
 
 service:

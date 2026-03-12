@@ -20,12 +20,10 @@ spec:
     spec:
       containers:
         - name: tei-log
-          image: ghcr.io/huggingface/text-embeddings-inference:1.5
+          image: ghcr.io/huggingface/text-embeddings-inference:cpu-latest
           args:
             - --model-id
             - intfloat/e5-large-v2
-            - --port
-            - "8082"
           ports:
             - containerPort: 8082
               name: http

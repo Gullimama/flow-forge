@@ -12,7 +12,7 @@ image:
 persistence:
   enabled: true
   size: 100Gi
-  storageClass: standard
+  storageClass: managed
 
 # Buckets to create after install (names only; policy defaults)
 buckets:

@@ -18,12 +18,14 @@ class EmbeddingConfigTest {
 
     @Test
     @Disabled("NoSuchMethodError when OpenAiEmbeddingModel is instantiated with vector-store on classpath; config works at runtime in Boot app")
-    void codeEmbeddingModel_configuredWith1024Dimensions() {
+    void codeEmbeddingModel_teiConfiguredWith1024Dimensions() {
         var props = new FlowForgeProperties(
             null, null, null, null, null, null, null,
+            new FlowForgeProperties.EmbeddingProperties("tei"),
             new FlowForgeProperties.TeiProperties("http://localhost:8081", "http://localhost:8082", "http://localhost:8083"),
+            null,
             null);
-        var config = new EmbeddingConfig();
+        var config = new TeiEmbeddingConfig();
         var model = config.codeEmbeddingModel(props);
         assertThat(model).isNotNull();
     }

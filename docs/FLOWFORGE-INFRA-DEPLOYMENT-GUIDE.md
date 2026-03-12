@@ -204,6 +204,13 @@ For a **local Ollama** setup (optional, but avoids vLLM):
 
 3. The `local` profile defaults to `base-url: http://localhost:11434` and `chat-model: llama3.1`, so no further config is needed.
 
+**Embedding provider (TEI vs Ollama):**
+
+- Embeddings (code and log) are provided by either **TEI** (Text Embedding Inference) or **Ollama**, controlled by `flowforge.embedding.provider` (`tei` | `ollama`).
+- **Local (macOS):** The `local` profile defaults to `provider: ollama` so you do **not** need TEI. Official TEI Docker images are amd64-only and do not run on arm64 (e.g. Apple Silicon). Run Ollama and pull an embedding model, e.g. `ollama pull nomic-embed-text`. The API uses `flowforge.ollama.base-url` and `flowforge.ollama.embedding-model` (default `nomic-embed-text`).
+- **AKS/cluster:** Use `provider: tei` (default in the main profile) and deploy the TEI code/log/reranker services from `k8s/ml-serving/tei-*` so the API uses `flowforge.tei.code-url`, `flowforge.tei.log-url`, and `flowforge.tei.reranker-url`.
+- Override with `FLOWFORGE_EMBEDDING_PROVIDER=tei` or `ollama` as needed.
+
 Once API + infra + LLM are up, you can:
 
 1. Trigger a **baseline snapshot** against the FlowForge repo itself:

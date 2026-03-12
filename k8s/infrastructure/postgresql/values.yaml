@@ -14,7 +14,7 @@ primary:
   persistence:
     enabled: true
     size: 50Gi
-    storageClass: standard
+    storageClass: managed
   readinessProbe:
     enabled: true
     initialDelaySeconds: 10

@@ -26,7 +26,7 @@ volumes:
   data:
     mode: dynamic
     dynamic:
-      storageClassName: standard
+      storageClassName: managed
       accessModes:
         - ReadWriteOnce
       requests:

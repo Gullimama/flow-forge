@@ -8,6 +8,7 @@ spec:
   sourceRepos:
     - 'https://github.com/Gullimama/flow-forge.git'
     - 'https://charts.bitnami.com/bitnami'
+    - 'registry-1.docker.io/bitnamicharts'
     - 'https://charts.min.io'
     - 'https://opensearch-project.github.io/helm-charts'
     - 'https://helm.neo4j.com/neo4j'

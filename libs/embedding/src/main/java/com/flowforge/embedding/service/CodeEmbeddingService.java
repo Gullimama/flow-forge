@@ -15,6 +15,8 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.document.Document;
+import org.springframework.ai.embedding.EmbeddingModel;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -23,22 +25,24 @@ public class CodeEmbeddingService {
     private static final Logger log = LoggerFactory.getLogger(CodeEmbeddingService.class);
     private static final int BATCH_SIZE = 64;
     private static final int PAGE_SIZE = 5000;
-    private static final int DIMENSIONS = 1024;
 
     private final VectorStoreService vectorStoreService;
     private final OpenSearchClientWrapper openSearch;
     private final MinioStorageClient minio;
     private final MeterRegistry meterRegistry;
+    private final EmbeddingModel codeEmbeddingModel;
 
     public CodeEmbeddingService(
             VectorStoreService vectorStoreService,
             OpenSearchClientWrapper openSearch,
             MinioStorageClient minio,
-            MeterRegistry meterRegistry) {
+            MeterRegistry meterRegistry,
+            @Qualifier("codeEmbeddingModel") EmbeddingModel codeEmbeddingModel) {
         this.vectorStoreService = vectorStoreService;
         this.openSearch = openSearch;
         this.minio = minio;
         this.meterRegistry = meterRegistry;
+        this.codeEmbeddingModel = codeEmbeddingModel;
     }
 
     /**
@@ -63,12 +67,13 @@ public class CodeEmbeddingService {
             sample.stop(meterRegistry.timer("flowforge.embedding.code.batch"));
         }
 
-        EmbeddingStats stats = new EmbeddingStats(snapshotId, documents.size(), DIMENSIONS, "codesage/codesage-large");
+        int dimensions = codeEmbeddingModel.dimensions();
+        EmbeddingStats stats = new EmbeddingStats(snapshotId, documents.size(), dimensions, "code-embedding");
         minio.putJson("evidence", "embeddings/code/" + snapshotId + ".json", stats);
 
         meterRegistry.counter("flowforge.embedding.code.total").increment(documents.size());
 
-        return new CodeEmbeddingResult(documents.size(), DIMENSIONS);
+        return new CodeEmbeddingResult(documents.size(), dimensions);
     }
 
     Document buildDocument(UUID snapshotId, Map<String, Object> chunk) {

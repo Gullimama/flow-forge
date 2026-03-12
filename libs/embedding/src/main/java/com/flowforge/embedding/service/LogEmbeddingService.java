@@ -18,6 +18,8 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.document.Document;
+import org.springframework.ai.embedding.EmbeddingModel;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -27,25 +29,27 @@ public class LogEmbeddingService {
     private static final int BATCH_SIZE = 128;
     private static final int MAX_EVENTS = 50_000;
     private static final int FETCH_PAGE_SIZE = 10_000;
-    private static final int DIMENSIONS = 1024;
 
     private final VectorStoreService vectorStoreService;
     private final LogEmbeddingTextBuilder textBuilder;
     private final OpenSearchClientWrapper openSearch;
     private final MinioStorageClient minio;
     private final MeterRegistry meterRegistry;
+    private final EmbeddingModel logEmbeddingModel;
 
     public LogEmbeddingService(
             VectorStoreService vectorStoreService,
             LogEmbeddingTextBuilder textBuilder,
             OpenSearchClientWrapper openSearch,
             MinioStorageClient minio,
-            MeterRegistry meterRegistry) {
+            MeterRegistry meterRegistry,
+            @Qualifier("logEmbeddingModel") EmbeddingModel logEmbeddingModel) {
         this.vectorStoreService = vectorStoreService;
         this.textBuilder = textBuilder;
         this.openSearch = openSearch;
         this.minio = minio;
         this.meterRegistry = meterRegistry;
+        this.logEmbeddingModel = logEmbeddingModel;
     }
 
     /**
@@ -77,13 +81,14 @@ public class LogEmbeddingService {
             );
         }
 
+        int dimensions = logEmbeddingModel.dimensions();
         LogEmbeddingStats stats = new LogEmbeddingStats(snapshotId, templateDocs.size(),
-            eventDocs.size(), DIMENSIONS, "intfloat/e5-large-v2");
+            eventDocs.size(), dimensions, "log-embedding");
         minio.putJson("evidence", "embeddings/log/" + snapshotId + ".json", stats);
 
         meterRegistry.counter("flowforge.embedding.log.total").increment(allDocs.size());
 
-        return new LogEmbeddingResult(templateDocs.size(), eventDocs.size(), DIMENSIONS);
+        return new LogEmbeddingResult(templateDocs.size(), eventDocs.size(), dimensions);
     }
 
     private Document buildTemplateDocument(UUID snapshotId, String serviceName,

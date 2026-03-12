@@ -20,12 +20,10 @@ spec:
     spec:
       containers:
         - name: tei-reranker
-          image: ghcr.io/huggingface/text-embeddings-inference:1.5
+          image: ghcr.io/huggingface/text-embeddings-inference:cpu-latest
           args:
             - --model-id
             - BAAI/bge-reranker-v2-m3
-            - --port
-            - "8083"
           ports:
             - containerPort: 8083
               name: http

@@ -46,6 +46,7 @@ class CodeEmbeddingServiceIntegrationTest {
 
     @DynamicPropertySource
     static void setTeiUrl(DynamicPropertyRegistry registry) {
+        registry.add("flowforge.embedding.provider", () -> "tei");
         registry.add("flowforge.tei.code-url", () -> "http://localhost:" + wireMock.port());
     }
 

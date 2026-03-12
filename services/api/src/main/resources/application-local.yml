@@ -13,6 +13,13 @@ spring:
 flowforge:
   dispatch:
     mode: ${FLOWFORGE_DISPATCH_MODE:in-process}
+  embedding:
+    provider: ${FLOWFORGE_EMBEDDING_PROVIDER:ollama}
   ollama:
     base-url: ${FLOWFORGE_OLLAMA_BASE_URL:http://localhost:11434}
     chat-model: ${FLOWFORGE_OLLAMA_CHAT_MODEL:llama3.1}
+    embedding-model: ${FLOWFORGE_OLLAMA_EMBEDDING_MODEL:nomic-embed-text}
+  tei:
+    code-url: ${FLOWFORGE_TEI_CODE_URL:http://localhost:8081}
+    log-url: ${FLOWFORGE_TEI_LOG_URL:http://localhost:8082}
+    reranker-url: ${FLOWFORGE_TEI_RERANKER_URL:http://localhost:8083}

@@ -26,7 +26,9 @@ public final class RerankerTestFixtures {
     public static FlowForgeProperties propsWithRerankerUrl(String url) {
         return new FlowForgeProperties(
             null, null, null, null, null, null, null,
+            new FlowForgeProperties.EmbeddingProperties("tei"),
             new FlowForgeProperties.TeiProperties("http://code:8081", "http://log:8082", url),
+            null,
             null);
     }
 

@@ -15,6 +15,7 @@ dependencies {
     implementation(project(":libs:vector-store"))
     implementation(project(":libs:log-parser"))
     implementation(libs.spring.ai.openai)
+    implementation(libs.spring.ai.ollama)
     implementation(libs.spring.boot.starter.actuator)
     implementation(libs.spring.boot.starter.web)
 

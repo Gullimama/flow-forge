@@ -7,7 +7,7 @@ architecture: standalone
 master:
   persistence:
     enabled: true
-    storageClass: standard
+    storageClass: managed
     size: 20Gi
   resources:
     requests:

@@ -42,6 +42,12 @@ flowforge:
     base-url: http://localhost:8000
     api-key: ""
     model: Qwen/Qwen3-14B
+  embedding:
+    provider: tei
+  ollama:
+    base-url: http://localhost:11434
+    chat-model: llama3.1
+    embedding-model: nomic-embed-text
   tei:
     code-url: http://localhost:8081
     log-url: http://localhost:8082

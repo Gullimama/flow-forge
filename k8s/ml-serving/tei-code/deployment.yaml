@@ -20,12 +20,10 @@ spec:
     spec:
       containers:
         - name: tei-code
-          image: ghcr.io/huggingface/text-embeddings-inference:1.5
+          image: ghcr.io/huggingface/text-embeddings-inference:cpu-latest
           args:
             - --model-id
             - codesage/codesage-large
-            - --port
-            - "8081"
           ports:
             - containerPort: 8081
               name: http
