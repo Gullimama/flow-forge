@@ -6,18 +6,21 @@ neo4j:
   edition: community
   password: "flowforge"
   resources:
-    cpu: "500m"
-    memory: "1Gi"
+    cpu: "2"
+    memory: "8Gi"  # AKS will scale up; sufficient for graph workload
 
 image:
   customImage: neo4j:5.25-community
 
 config:
-  server.memory.heap.initial_size: "384m"
-  server.memory.heap.max_size: "384m"
-  server.memory.pagecache.size: "128m"
+  server.memory.heap.initial_size: "4g"
+  server.memory.heap.max_size: "4g"
+  server.memory.pagecache.size: "2g"
   server.directories.plugins: /var/lib/neo4j/plugins
   server.security.procedures.unrestricted: "apoc.*"
+  # AKS: only port 80 allowed; disable http/https so post-render can expose bolt on 80 only
+  server.http.enabled: "false"
+  server.https.enabled: "false"
 
 apoc:
   enabled: true
@@ -32,13 +35,20 @@ volumes:
       requests:
         storage: 50Gi
 
-# AKS policy: only port 80 allowed; expose bolt on 80 (http/7474 omitted to avoid duplicate port)
+# AKS policy: only port 80 allowed
 services:
+  # LoadBalancer service (neo4j-lb-neo4j): bolt on 80 only
   neo4j:
+    enabled: true
     spec:
       type: ClusterIP
-      ports:
-        - name: tcp-bolt
-          protocol: TCP
-          port: 80
-          targetPort: 7687
+    ports:
+      http:
+        enabled: false
+      https:
+        enabled: false
+      bolt:
+        enabled: true
+        port: 80
+        targetPort: 7687
+        name: tcp-bolt

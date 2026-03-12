@@ -10,7 +10,7 @@ spec:
   selector:
     app.kubernetes.io/name: ollama
   ports:
-    - port: 11434
+    - port: 80
       targetPort: 11434
       protocol: TCP
       name: http

@@ -4,7 +4,11 @@ auth:
 
 architecture: standalone
 
+# AKS policy: only port 80 allowed for services
 master:
+  service:
+    ports:
+      redis: 80
   persistence:
     enabled: true
     storageClass: managed

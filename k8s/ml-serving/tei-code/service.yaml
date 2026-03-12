@@ -10,7 +10,7 @@ spec:
   selector:
     app.kubernetes.io/name: tei-code
   ports:
-    - port: 8081
+    - port: 80
       targetPort: 8081
       protocol: TCP
       name: http

@@ -23,4 +23,4 @@ persistence:
 
 service:
   type: ClusterIP
-  port: 80  # AKS policy: only port 80 allowed (targetPort remains 9200 in chart)
+  # AKS: Service port 80 is applied by post-render (chart uses 9200/9300/9600 for containerPort)

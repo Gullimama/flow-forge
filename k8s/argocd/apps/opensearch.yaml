@@ -26,6 +26,10 @@ spec:
       helm:
         valueFiles:
           - $values/k8s/infrastructure/opensearch/values.yaml
+        # AKS: only port 80 allowed; patch Service ports and add targetPort so container keeps 9200/9300/9600
+        postRenderers:
+          - exec:
+              command: ["/bin/sh", "-c", "awk '/^    port: 9200\\$/ { print \"    port: 80\"; print \"    targetPort: 9200\"; next } /^    port: 9300\\$/ { print \"    port: 80\"; print \"    targetPort: 9300\"; next } /^    port: 9600\\$/ { print \"    port: 80\"; print \"    targetPort: 9600\"; next } { print }'"]
     - repoURL: https://github.com/Gullimama/flow-forge.git
       targetRevision: main
       ref: values

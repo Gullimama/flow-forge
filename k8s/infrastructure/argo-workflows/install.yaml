@@ -119,5 +119,5 @@ spec:
     app: argo-server
   ports:
     - name: web
-      port: 2746
+      port: 80
       targetPort: 2746

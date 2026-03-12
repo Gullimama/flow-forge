@@ -10,7 +10,7 @@ spec:
   selector:
     app.kubernetes.io/name: tei-reranker
   ports:
-    - port: 8083
+    - port: 80
       targetPort: 8083
       protocol: TCP
       name: http
