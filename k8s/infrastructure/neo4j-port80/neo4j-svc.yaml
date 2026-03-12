@@ -1,0 +1,39 @@
+# AKS: override default Service to use port 80 (replaces Helm-generated Service)
+apiVersion: v1
+kind: Service
+metadata:
+  name: neo4j
+  namespace: flowforge-infra
+  labels:
+    app: neo4j
+spec:
+  type: ClusterIP
+  publishNotReadyAddresses: false
+  selector:
+    app: neo4j
+    helm.neo4j.com/instance: neo4j
+  ports:
+    - name: tcp-bolt
+      protocol: TCP
+      port: 80
+      targetPort: 7687
+---
+# AKS: override admin Service to use port 80
+apiVersion: v1
+kind: Service
+metadata:
+  name: neo4j-admin
+  namespace: flowforge-infra
+  labels:
+    app: neo4j
+spec:
+  type: ClusterIP
+  publishNotReadyAddresses: true
+  selector:
+    app: neo4j
+    helm.neo4j.com/instance: neo4j
+  ports:
+    - name: tcp-bolt
+      protocol: TCP
+      port: 80
+      targetPort: 7687

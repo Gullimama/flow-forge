@@ -26,10 +26,10 @@ spec:
       helm:
         valueFiles:
           - $values/k8s/infrastructure/opensearch/values.yaml
-        # AKS: only port 80 allowed; patch Service port 9200/9300/9600 -> 80 and add targetPort
-        postRenderers:
-          - exec:
-              command: ["/bin/sh", "-c", "awk 'BEGIN{p=0} /^[[:space:]]*port: 9200/ && !/targetPort/{b=substr($0,1,index($0,\"port:\")-1); print b\"port: 80\"; print b\"targetPort: 9200\"; next} /^[[:space:]]*port: 9300/ && !/targetPort/{b=substr($0,1,index($0,\"port:\")-1); print b\"port: 80\"; print b\"targetPort: 9300\"; next} /^[[:space:]]*port: 9600/ && !/targetPort/{b=substr($0,1,index($0,\"port:\")-1); print b\"port: 80\"; print b\"targetPort: 9600\"; next} {print}'"]
     - repoURL: https://github.com/Gullimama/flow-forge.git
       targetRevision: main
       ref: values
+    # AKS port 80: override opensearch-cluster-master + headless Services
+    - repoURL: https://github.com/Gullimama/flow-forge.git
+      targetRevision: main
+      path: k8s/infrastructure/opensearch-port80

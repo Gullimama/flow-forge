@@ -26,10 +26,10 @@ spec:
       helm:
         valueFiles:
           - $values/k8s/infrastructure/neo4j/values.yaml
-        # AKS: only port 80 allowed; patch default + admin Service port 7687 -> 80 (preserve indent)
-        postRenderers:
-          - exec:
-              command: ["/bin/sh", "-c", "sed -E 's/^([[:space:]]*)port: 7687/\\1port: 80/'"]
     - repoURL: https://github.com/Gullimama/flow-forge.git
       targetRevision: main
       ref: values
+    # AKS port 80: override neo4j + neo4j-admin Services (replaces Helm-generated ones)
+    - repoURL: https://github.com/Gullimama/flow-forge.git
+      targetRevision: main
+      path: k8s/infrastructure/neo4j-port80
