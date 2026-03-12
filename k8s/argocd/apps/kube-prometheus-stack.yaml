@@ -19,6 +19,10 @@ spec:
     - repoURL: https://github.com/Gullimama/flow-forge.git
       targetRevision: main
       ref: values
+    # AKS port 80: override multi-port Prometheus/Alertmanager Services (replaces Helm-generated ones)
+    - repoURL: https://github.com/Gullimama/flow-forge.git
+      targetRevision: main
+      path: k8s/observability/kube-prometheus-stack-port80
   destination:
     server: https://kubernetes.default.svc
     namespace: flowforge-obs
