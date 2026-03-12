@@ -1,6 +1,11 @@
 global:
   logAsJson: true
 
+  # AKS policy: only port 80 allowed for Services.
+  # Disable Dapr actors so the placement service (ports 50005/8201) and its Service are not created.
+  actors:
+    enabled: false
+
 dashboard:
   enabled: true
 
