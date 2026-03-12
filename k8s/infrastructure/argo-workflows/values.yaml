@@ -17,6 +17,9 @@ controller:
 
 server:
   authMode: server
+  # AKS policy: only port 80 allowed for Services
+  servicePort: 80
+  serviceTargetPort: 2746
   resources:
     requests:
       cpu: "250m"
@@ -34,7 +37,7 @@ executor:
 artifactRepository:
   s3:
     bucket: argo-artifacts
-    endpoint: flowforge-minio.flowforge-infra.svc.cluster.local:9000
+    endpoint: flowforge-minio.flowforge-infra.svc.cluster.local:80
     insecure: true
     accessKeySecret:
       name: argo-minio-credentials
