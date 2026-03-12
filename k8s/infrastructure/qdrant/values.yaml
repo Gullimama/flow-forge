@@ -4,8 +4,16 @@ image:
   repository: docker.io/qdrant/qdrant
   tag: ""
 
+# AKS policy: only port 80 allowed for services
 service:
   type: ClusterIP
+  ports:
+    # Qdrant listens on 6333; Service must expose port 80 on AKS
+    - name: http
+      port: 80
+      targetPort: 6333
+      protocol: TCP
+      checksEnabled: true
 
 resources:
   requests:
