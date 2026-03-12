@@ -1,8 +1,14 @@
 # Official MinIO chart (minio/minio) - https://charts.min.io/
+# Service ports set to 80 for AKS policy (only port 80 allowed for services)
 mode: standalone
 
 rootUser: flowforge
 rootPassword: flowforge
+
+service:
+  port: "80"
+consoleService:
+  port: "80"
 
 image:
   repository: quay.io/minio/minio

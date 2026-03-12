@@ -301,6 +301,8 @@ Postgres and MinIO live in **`flowforge-infra`** and share sync wave `"1"`:
 
 Both are Bitnami Helm charts, configured via values files under `k8s/infrastructure/postgresql` and `k8s/infrastructure/minio`.
 
+**AKS service port policy:** If your cluster only allows certain Service ports (e.g. Azure Policy allows only port 80), MinIO and FlowForge API are configured to expose port 80 (with `targetPort` to the container’s real port). See `k8s/infrastructure/minio/values.yaml` (`service.port`, `consoleService.port`) and `k8s/app/flowforge-api/service.yaml`.
+
 They must be up before:
 
 - The API can start (it needs Postgres).
