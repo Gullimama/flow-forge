@@ -32,6 +32,7 @@ volumes:
       requests:
         storage: 50Gi
 
+# AKS policy: only port 80 allowed; expose bolt on 80 (http/7474 omitted to avoid duplicate port)
 services:
   neo4j:
     spec:
@@ -39,9 +40,5 @@ services:
       ports:
         - name: tcp-bolt
           protocol: TCP
-          port: 7687
+          port: 80
           targetPort: 7687
-        - name: tcp-http
-          protocol: TCP
-          port: 7474
-          targetPort: 7474

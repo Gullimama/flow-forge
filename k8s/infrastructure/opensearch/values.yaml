@@ -23,4 +23,4 @@ persistence:
 
 service:
   type: ClusterIP
-  port: 9200
+  port: 80  # AKS policy: only port 80 allowed (targetPort remains 9200 in chart)
