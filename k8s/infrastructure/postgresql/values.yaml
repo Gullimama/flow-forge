@@ -3,6 +3,9 @@ auth:
   username: flowforge
   password: flowforge
 
+global:
+  storageClass: managed
+
 primary:
   resources:
     requests:
